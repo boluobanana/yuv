@@ -58,6 +58,20 @@ export function setRectangle(gl, x, y, width, height) {
   ]), gl.STATIC_DRAW);
 }
 
+export function createTextures(gl, program, images) {
+
+  let texs = images.map( (img, i) => {
+    return createTexutre(gl, program, img, i);
+  })
+
+  texs.forEach((tex, i) => {
+    var u_imageLocation = gl.getUniformLocation(program, `u_image${i}`);
+    gl.uniform1i(u_imageLocation, i);  // texture unit 0
+    gl.activeTexture(gl.TEXTURE0 + i);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+  })
+}
+
 export function createTexutre(gl: WebGLRenderingContext, program, img:HTMLImageElement, index:number) {
   var texture1 = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture1);

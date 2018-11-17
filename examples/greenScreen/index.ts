@@ -1,4 +1,4 @@
-import { createProgram, resize, createTexutre, loadImages } from '../utils';
+import { createProgram, resize, createTexutre, loadImages, createTextures } from '../utils';
 import { vertex, fragment} from './shader';
 // @ts-ignore
 import ImgGreen from '../assets/image/greenTaiger.jpg';
@@ -62,18 +62,8 @@ function render(images: Images) {
   // Tell it to use our program (pair of shaders)
   gl.useProgram(program);
 
-  let tex0 = createTexutre(gl, program, images[0], 0);
-  let tex1 = createTexutre(gl, program, images[1], 1);
-
-  var u_imageLocation0 = gl.getUniformLocation(program, `u_image0`);
-  var u_imageLocation1 = gl.getUniformLocation(program, `u_image1`);
-  gl.uniform1i(u_imageLocation0, 0);  // texture unit 0
-  gl.uniform1i(u_imageLocation1, 1);  // texture unit 0
-
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, tex0);
-  gl.activeTexture(gl.TEXTURE1);
-  gl.bindTexture(gl.TEXTURE_2D, tex1);
+  //
+  createTextures(gl, program, images);
 
   // Turn on the attribute
   gl.enableVertexAttribArray(positionAttributeLocation);
@@ -89,7 +79,6 @@ function render(images: Images) {
   var offset = 0;        // start at the beginning of the buffer
   gl.vertexAttribPointer(
     positionAttributeLocation, size, type, normalize, stride, offset)
-
 
   // Turn on the teccord attribute
   gl.enableVertexAttribArray(texcoordLocation);
