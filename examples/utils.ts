@@ -30,9 +30,10 @@ export function createProgram(gl: WebGLRenderingContext, vertexShaderSource: str
   gl.deleteProgram(program);
 }
 
-export function resize(canvas: HTMLCanvasElement) {
+export function resize(canvas: HTMLCanvasElement, w, h) {
   var realToCSSPixels = window.devicePixelRatio
-
+  canvas.width = w;
+  canvas.height = h;
   var displayWidth = Math.floor(canvas.clientWidth * realToCSSPixels),
     displayHeight = Math.floor(canvas.clientHeight * realToCSSPixels)
 

@@ -1,23 +1,39 @@
 import { createProgram, resize } from '../utils';
-import { vertex, fragment } from './shader';
+import { vertex, fragment} from './shader';
 // @ts-ignore
 import ImgGreen from '../assets/image/greenTaiger.jpg';
 
+let v = document.querySelector('video');
+let gl: WebGLRenderingContext, canvas;
 main();
 
 function main() {
-  let img = new Image();
-  img.src = ImgGreen;
-  img.onload = _ => {
-    render(img)
+  v.load();
+
+  v.oncanplay = _ => {
+    init(v);
+    animatie();
+    v.play();
   }
 }
 
+let count = 0;
+let rate = 25;
 
-function render(image: HTMLImageElement) {
-  const canvas = document.querySelector('canvas');
-  const gl = canvas.getContext('webgl');
+function animatie() {
+  count += 1;
+  if (count > 60 / rate) {
+    count = 0;
+    // render()
+  }
+  requestAnimationFrame(animatie);
+}
 
+function init(video: HTMLVideoElement) {
+  canvas = document.querySelector('canvas');
+  gl = canvas.getContext('webgl');
+
+  gl.FLOAT
   var program = createProgram(gl, vertex, fragment);
 
   var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
@@ -58,9 +74,10 @@ function render(image: HTMLImageElement) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
   // Upload the image into the texture.
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-
-  resize(canvas);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+  let h = v.height;
+  let w = v.width;
+  resize(canvas, w, h);
 
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
@@ -102,8 +119,10 @@ function render(image: HTMLImageElement) {
   gl.vertexAttribPointer(
     texcoordLocation, size, type, normalize, stride, offset)
   // draw
+
   var primitiveType = gl.TRIANGLES;
   var offset = 0;
   var count = 6;
+  console.log('render');
   gl.drawArrays(primitiveType, offset, count);
 }
