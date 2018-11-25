@@ -10,7 +10,15 @@ interface Attrib {
 interface Attribs {
   [name: string]: Attrib
 }
+interface BufferInfo {
+  attribs: Attribs,
+  indices: ArrayBuffer,
+  numElements: number
+}
+
 
 declare function createAugmentedTypedArray<T>(numComponents: number, numElements: number, opt_type?: T | Float32Array): T | Float32Array
 declare function createAttribsFromArrays(gl: WebGLRenderingContext, arrays: any, opt_mapping?: any): Attribs
-declare function createBuffersFromArrays(gl, arrays)
+declare function createBuffersFromArrays(gl: WebGLRenderingContext, arrays:any): {[name:string]: WebGLBuffer}
+declare function createBufferInfoFromArrays(gl: WebGLRenderingContext, arrays: any, opt_mapping?: any): BufferInfo
+// declare function createAttributeSetters(gl: WebGLRenderingContext, program: WebGLProgram)

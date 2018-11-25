@@ -28,6 +28,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+interface Attrib {
+  buffer: WebGLBuffer,
+  numComponents: number,
+  type: WebGLRenderingContextBase["FLOAT"] | WebGLRenderingContextBase["BYTE"]
+  | WebGLRenderingContextBase["UNSIGNED_BYTE"] | WebGLRenderingContextBase["SHORT"]
+  | WebGLRenderingContextBase["UNSIGNED_SHORT"] | WebGLRenderingContextBase["INT"]
+  | WebGLRenderingContextBase["UNSIGNED_INT"],
+  normalize: boolean
+}
+interface Attribs {
+  [name: string]: Attrib
+}
+type ErrFn = (string) => void;
+type ShaderType = WebGLRenderingContextBase["SHADER_TYPE"];
+type Opt_attribs = string[];
+type Opt_locations = GLuint;
+interface UniformInfo {
+  type: WebGLRenderingContextBase["FLOAT"] | WebGLRenderingContextBase["FLOAT_VEC2"] | WebGLRenderingContextBase["FLOAT_VEC4"] | WebGLRenderingContextBase["FLOAT_VEC3"] | WebGLRenderingContextBase["INT"] | WebGLRenderingContextBase["INT_VEC2"] | WebGLRenderingContextBase["INT_VEC3"] | WebGLRenderingContextBase["INT_VEC4"] | WebGLRenderingContextBase["BOOL"] | WebGLRenderingContextBase["BOOL_VEC2"] | WebGLRenderingContextBase["BOOL_VEC3"] | WebGLRenderingContextBase["BOOL_VEC4"] | WebGLRenderingContextBase["FLOAT_MAT2"] | WebGLRenderingContextBase["FLOAT_MAT3"] | WebGLRenderingContextBase["FLOAT_MAT4"] | WebGLRenderingContextBase["SAMPLER_2D"] | WebGLRenderingContextBase["SAMPLER_CUBE"] ,
+  size: number,
+  name: string,
+
+}
+type Setters = {
+  uniformSetters?: any;
+  [fn: string]: (str:string) => void;
+}
+type uniformSetters = {
+  [fn: string]: (str: string) => void;
+}
+
+
+
 const webglUtils = init();
 function init () {
   "use strict";
@@ -36,7 +69,7 @@ function init () {
 
   /** @module webgl-utils */
 
-  function isInIFrame(w) {
+  function isInIFrame(w?) {
     w = w || topWindow;
     return w !== w.top;
   }
@@ -50,7 +83,7 @@ function init () {
    * Wrapped logging function.
    * @param {string} msg The message to log.
    */
-  function error(msg) {
+  function error(msg:string) {
     if (topWindow.console) {
       if (topWindow.console.error) {
         topWindow.console.error(msg);
@@ -77,7 +110,7 @@ function init () {
    * @param {module:webgl-utils.ErrorCallback} opt_errorCallback callback for errors.
    * @return {WebGLShader} The created shader.
    */
-  function loadShader(gl, shaderSource, shaderType, opt_errorCallback) {
+  function loadShader(gl: WebGLRenderingContext, shaderSource: string, shaderType: ShaderType, opt_errorCallback?: ErrFn) {
     var errFn = opt_errorCallback || error;
     // Create the shader object
     var shader = gl.createShader(shaderType);
@@ -112,14 +145,14 @@ function init () {
    * @memberOf module:webgl-utils
    */
   function createProgram(
-    gl, shaders, opt_attribs, opt_locations, opt_errorCallback) {
+    gl: WebGLRenderingContext, shaders: WebGLShader[], opt_attribs?: Opt_attribs, opt_locations?: Opt_locations, opt_errorCallback?: ErrFn) {
     var errFn = opt_errorCallback || error;
     var program = gl.createProgram();
     shaders.forEach(function (shader) {
       gl.attachShader(program, shader);
     });
     if (opt_attribs) {
-      opt_attribs.forEach(function (attrib, ndx) {
+      opt_attribs.forEach(function (attrib, ndx:number) {
         gl.bindAttribLocation(
           program,
           opt_locations ? opt_locations[ndx] : ndx,
@@ -151,10 +184,10 @@ function init () {
    * @return {WebGLShader} The created shader.
    */
   function createShaderFromScript(
-    gl, scriptId, opt_shaderType, opt_errorCallback) {
+    gl: WebGLRenderingContext, scriptId: string, opt_shaderType?: ShaderType, opt_errorCallback?: ErrFn) {
     var shaderSource = "";
     var shaderType;
-    var shaderScript = document.getElementById(scriptId);
+    var shaderScript: HTMLScriptElement = document.getElementById(scriptId) as HTMLScriptElement;
     if (!shaderScript) {
       throw ("*** Error: unknown script element" + scriptId);
     }
@@ -196,7 +229,7 @@ function init () {
    * @memberOf module:webgl-utils
    */
   function createProgramFromScripts(
-    gl, shaderScriptIds, opt_attribs, opt_locations, opt_errorCallback) {
+    gl: WebGLRenderingContext, shaderScriptIds: string, opt_attribs?: Opt_attribs, opt_locations?: Opt_locations, opt_errorCallback?: ErrFn) {
     var shaders = [];
     for (var ii = 0; ii < shaderScriptIds.length; ++ii) {
       shaders.push(createShaderFromScript(
@@ -221,7 +254,7 @@ function init () {
    * @memberOf module:webgl-utils
    */
   function createProgramFromSources(
-    gl, shaderSources, opt_attribs, opt_locations, opt_errorCallback) {
+    gl: WebGLRenderingContext, shaderSources: string[], opt_attribs?: Opt_attribs, opt_locations?: Opt_locations, opt_errorCallback?: ErrFn) {
     var shaders = [];
     for (var ii = 0; ii < shaderSources.length; ++ii) {
       shaders.push(loadShader(
@@ -233,7 +266,7 @@ function init () {
   /**
    * Returns the corresponding bind point for a given sampler type
    */
-  function getBindPointForSamplerType(gl, type) {
+  function getBindPointForSamplerType(gl: WebGLRenderingContext, type: WebGLRenderingContextBase["SAMPLER_2D"] | WebGLRenderingContextBase["SAMPLER_CUBE"]) {
     if (type === gl.SAMPLER_2D) return gl.TEXTURE_2D;        // eslint-disable-line
     if (type === gl.SAMPLER_CUBE) return gl.TEXTURE_CUBE_MAP;  // eslint-disable-line
     return undefined;
@@ -253,7 +286,7 @@ function init () {
    * @returns {Object.<string, function>} an object with a setter by name for each uniform
    * @memberOf module:webgl-utils
    */
-  function createUniformSetters(gl, program) {
+  function createUniformSetters(gl: WebGLRenderingContext, program: WebGLProgram) {
     var textureUnit = 0;
 
     /**
@@ -263,7 +296,7 @@ function init () {
      * @param {WebGLUniformInfo} uniformInfo
      * @returns {function} the created setter.
      */
-    function createUniformSetter(program, uniformInfo) {
+    function createUniformSetter(program: WebGLProgram, uniformInfo: UniformInfo) {
       var location = gl.getUniformLocation(program, uniformInfo.name);
       var type = uniformInfo.type;
       // Check if this uniform is an array
@@ -355,7 +388,7 @@ function init () {
       }
       if ((type === gl.SAMPLER_2D || type === gl.SAMPLER_CUBE) && isArray) {
         var units = [];
-        for (var ii = 0; ii < info.size; ++ii) {
+        for (var ii = 0; ii < uniformInfo.size; ++ii) {
           units.push(textureUnit++);
         }
         return function (bindPoint, units) {
@@ -384,7 +417,7 @@ function init () {
     var numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
 
     for (var ii = 0; ii < numUniforms; ++ii) {
-      var uniformInfo = gl.getActiveUniform(program, ii);
+      let uniformInfo = gl.getActiveUniform(program, ii);
       if (!uniformInfo) {
         break;
       }
