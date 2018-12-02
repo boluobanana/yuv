@@ -1,13 +1,10 @@
 import { createProgram, resize } from '../../utils';
 import { vertex, fragment } from '../shader';
-import attributes, {Attributes} from './attributes';
-import webglUtils from '../../webgl-utils';
-let {
-  createProgramInfo
-} = webglUtils;
+import {Attributes} from './attributes';
+import elements, {Elements} from './elements';
 
 export interface YUVOption {
-  src: string;
+  srcs: string[];
   canvas: HTMLCanvasElement
 }
 
@@ -18,18 +15,21 @@ export default class YUVRender {
   attributes: any;
   uniformSetters: any;
   attribSetters: any;
-  video: HTMLVideoElement;
+  videos: HTMLVideoElement[];
   attribs: Attributes;
   uniforms: any;
+  elements: Elements
 
   constructor(opt: YUVOption) {
     this.canvas = opt.canvas;
     this.gl = this.canvas.getContext('webgl');
     this.program = createProgram(this.gl, vertex, fragment);
 
+    this.resize();
     this.initVideo(opt);
     this.initAttributes();
     this.initUniform();
+
   }
 
   render() {
@@ -38,16 +38,17 @@ export default class YUVRender {
 
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.useProgram(this.program);
-    this.initTexture();
+    elements.forEach( (attribs, index) => {
+      gl.useProgram(this.program);
+      this.initTexture(this.videos[index]);
 
-    this.bindBuffer();
-    this.setUniform();
+      this.bindBuffer(attribs);
+      this.setUniform();
 
-    var primitiveType = gl.TRIANGLES;
-    var offset = 0;
-    var count = 6;
-    gl.drawArrays(primitiveType, offset, count);
+      var offset = 0;
+      var count = 6;
+      gl.drawArrays(gl.TRIANGLES, offset, count);
+    })
 
     requestAnimationFrame(this.render.bind(this));
 
@@ -62,15 +63,18 @@ export default class YUVRender {
     let {
       gl, program
     } = this;
-    let attribs = this.attribs = Object.assign({}, attributes);
+    this.elements = elements.map( (el, index) => {
+      let attribs = Object.assign({}, el);
 
-    for (let k in attribs) {
-      let attr = attribs[k];
-      attr.location = gl.getAttribLocation(program, k);
-      attr.buffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, attr.buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, attr.bufferSource, gl.STATIC_DRAW)
-    }
+      for (let k in attribs) {
+        let attr = attribs[k];
+        attr.location = gl.getAttribLocation(program, k);
+        attr.buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, attr.buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, attr.bufferSource, gl.STATIC_DRAW)
+      }
+      return attribs;
+    })
   }
   initUniform() {
     let {
@@ -89,27 +93,33 @@ export default class YUVRender {
   }
 
   initVideo(opt: YUVOption) {
-    this.video = document.createElement('video');
-    this.video.src = opt.src;
-    this.video.loop = true;
-    this.video.muted = true;
-    this.video.autoplay = true;
-    this.video.crossOrigin = 'anonymous'
-    this.video.play();
-    // document.body.appendChild(this.video);
-    let w = 320, h = 160;
-    this.video.addEventListener('loadedmetadata', e => {
-      this.resize(w, h);
-    })
-    this.video.addEventListener('canplaythrough', e => {
-      this.resize(w, h);
+    this.videos = opt.srcs.map(src => {
+
+      let video = document.createElement('video');
+      video.src = src;
+      video.loop = true;
+      video.muted = true;
+      video.autoplay = true;
+      video.crossOrigin = 'anonymous'
+      video.play();
+      // document.body.appendChild(video);
+      // let w = 320, h = 160;
+      // video.addEventListener('loadedmetadata', e => {
+      //   this.resize(w, h);
+      // })
+      // video.addEventListener('canplaythrough', e => {
+      //   this.resize(w, h);
+      // })
+
+      return video;
     })
   }
 
-  bindBuffer() {
+  bindBuffer(attribs) {
     let {
-      gl, attribs
+      gl
     } = this;
+    // console.log(attribs);
 
     for (let k in attribs) {
       let attr = attribs[k];
@@ -119,7 +129,8 @@ export default class YUVRender {
     }
   }
 
-  initTexture() {
+  initTexture(video) {
+
     let {gl} = this;
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -131,7 +142,8 @@ export default class YUVRender {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
     // Upload the image into the texture.
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.video);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+
   }
 
 }

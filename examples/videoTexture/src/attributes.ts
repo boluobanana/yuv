@@ -15,14 +15,6 @@ export type Attribute = {
 
 const attributes: Attributes = {
   a_position: {
-    // bufferSource: Float32Array.from([
-    //   -1.0, 1.0, // 左上
-    //   1.0, 1.0, // 右上
-    //   -1.0, -1.0, // 左下
-    //   -1.0, -1.0, // 左下
-    //   1.0, 1.0, // 右上
-    //   1.0, -1.0 // 右下
-    // ]),
     bufferSource: Float32Array.from([
       0, 0, // 左上
       640, 0, // 右上

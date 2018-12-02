@@ -34,20 +34,20 @@ export const fragment = `
 
   void main() {
     float y,u,v, r, g, b;
-    // r = texture2D(u_image, v_texCoord).r;
-    // g = texture2D(u_image, v_texCoord).g;
-    // b = texture2D(u_image, v_texCoord).b;
-    // y = 0.299 * r + 0.587 * g + 0.114 * b;
-    // u = 0.493 * ( b - y );
-    // v = 0.877 * ( r - y ) ;
+    r = texture2D(u_image, v_texCoord).r;
+    g = texture2D(u_image, v_texCoord).g;
+    b = texture2D(u_image, v_texCoord).b;
+    y = 0.299 * r + 0.587 * g + 0.114 * b;
+    u = 0.493 * ( b - y );
+    v = 0.877 * ( r - y ) ;
 
-    // r = y + 1.5958 * v;
-    // g = y - 0.39173 * u - 0.81290 * v;
-    // b = y + 2.017 * u;
+    r = y + 1.5958 * v;
+    g = y - 0.39173 * u - 0.81290 * v;
+    b = y + 2.017 * u;
 
-    // gl_FragColor = vec4(r,g, b, 1.0);
+    gl_FragColor = vec4(r,g, b, 1.0);
 
-    gl_FragColor = texture2D(u_image, v_texCoord);
+    // gl_FragColor = texture2D(u_image, v_texCoord);
 
   }
 `
