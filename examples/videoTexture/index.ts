@@ -33,7 +33,7 @@ function init(video: HTMLVideoElement) {
   canvas = document.querySelector('canvas');
   gl = canvas.getContext('webgl');
 
-  gl.FLOAT
+  // gl.FLOAT
   var program = createProgram(gl, vertex, fragment);
 
   var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
