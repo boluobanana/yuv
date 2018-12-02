@@ -20,6 +20,7 @@ export default class YUVRender {
   attribSetters: any;
   video: HTMLVideoElement;
   attribs: Attributes;
+  uniforms: any;
 
   constructor(opt: YUVOption) {
     this.canvas = opt.canvas;
@@ -28,7 +29,7 @@ export default class YUVRender {
 
     this.initVideo(opt);
     this.initAttributes();
-
+    this.initUniform();
   }
 
   render() {
@@ -41,6 +42,7 @@ export default class YUVRender {
     this.initTexture();
 
     this.bindBuffer();
+    this.setUniform();
 
     var primitiveType = gl.TRIANGLES;
     var offset = 0;
@@ -52,7 +54,7 @@ export default class YUVRender {
   }
 
   resize(w?: number, h?: number) {
-    resize(this.canvas, w || this.video.clientWidth, h || this.video.clientHeight)
+    resize(this.canvas, window.innerWidth, window.innerHeight);
   }
 
   initAttributes() { 
@@ -70,6 +72,22 @@ export default class YUVRender {
       gl.bufferData(gl.ARRAY_BUFFER, attr.bufferSource, gl.STATIC_DRAW)
     }
   }
+  initUniform() {
+    let {
+      gl, program
+    } = this;
+
+    this.uniforms = {
+      'u_resolution': {
+        location: gl.getUniformLocation(program, "u_resolution")
+      }
+    }
+  }
+  setUniform() {
+    let { gl, uniforms} = this;
+    gl.uniform2f(uniforms['u_resolution'].location, gl.canvas.width, gl.canvas.height);
+  }
+
   initVideo(opt: YUVOption) {
     this.video = document.createElement('video');
     this.video.src = opt.src;

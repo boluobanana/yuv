@@ -29,7 +29,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-interface Attrib {
+type ErrFn = (string) => void;
+type ShaderType = WebGLRenderingContextBase["SHADER_TYPE"];
+type Opt_attribs = string[];
+type Opt_locations = GLuint;
+export interface UniformInfo {
+  type: WebGLRenderingContextBase["FLOAT"] | WebGLRenderingContextBase["FLOAT_VEC2"] | WebGLRenderingContextBase["FLOAT_VEC4"] | WebGLRenderingContextBase["FLOAT_VEC3"] | WebGLRenderingContextBase["INT"] | WebGLRenderingContextBase["INT_VEC2"] | WebGLRenderingContextBase["INT_VEC3"] | WebGLRenderingContextBase["INT_VEC4"] | WebGLRenderingContextBase["BOOL"] | WebGLRenderingContextBase["BOOL_VEC2"] | WebGLRenderingContextBase["BOOL_VEC3"] | WebGLRenderingContextBase["BOOL_VEC4"] | WebGLRenderingContextBase["FLOAT_MAT2"] | WebGLRenderingContextBase["FLOAT_MAT3"] | WebGLRenderingContextBase["FLOAT_MAT4"] | WebGLRenderingContextBase["SAMPLER_2D"] | WebGLRenderingContextBase["SAMPLER_CUBE"] ,
+  size: number,
+  name: string,
+
+}
+export type Setters = {
+  uniformSetters?: any;
+  [fn: string]: (str:string) => void;
+}
+export type uniformSetters = {
+  [fn: string]: (str: string) => void;
+}
+export type attribSetters = {
+
+}
+export type Buffers = {
+  [name: string]: WebGLBuffer
+  numElements?: number
+  indices?: WebGLBuffer
+}
+export type BufferInfo = {
+  numElements?: number
+  indices?: WebGLBuffer
+  attribs: AttribInfo
+}
+
+export type AttribInfo = {
+  [name: string]: Attrib
+}
+export type Attrib = {
   buffer: WebGLBuffer,
   numComponents: number,
   type: WebGLRenderingContextBase["FLOAT"] | WebGLRenderingContextBase["BYTE"]
@@ -38,61 +72,10 @@ interface Attrib {
   | WebGLRenderingContextBase["UNSIGNED_INT"],
   normalize: boolean
 }
-interface Attribs {
-  [name: string]: Attrib
-}
-type ErrFn = (string) => void;
-type ShaderType = WebGLRenderingContextBase["SHADER_TYPE"];
-type Opt_attribs = string[];
-type Opt_locations = GLuint;
-interface UniformInfo {
-  type: WebGLRenderingContextBase["FLOAT"] | WebGLRenderingContextBase["FLOAT_VEC2"] | WebGLRenderingContextBase["FLOAT_VEC4"] | WebGLRenderingContextBase["FLOAT_VEC3"] | WebGLRenderingContextBase["INT"] | WebGLRenderingContextBase["INT_VEC2"] | WebGLRenderingContextBase["INT_VEC3"] | WebGLRenderingContextBase["INT_VEC4"] | WebGLRenderingContextBase["BOOL"] | WebGLRenderingContextBase["BOOL_VEC2"] | WebGLRenderingContextBase["BOOL_VEC3"] | WebGLRenderingContextBase["BOOL_VEC4"] | WebGLRenderingContextBase["FLOAT_MAT2"] | WebGLRenderingContextBase["FLOAT_MAT3"] | WebGLRenderingContextBase["FLOAT_MAT4"] | WebGLRenderingContextBase["SAMPLER_2D"] | WebGLRenderingContextBase["SAMPLER_CUBE"] ,
-  size: number,
-  name: string,
-
-}
-type Setters = {
-  uniformSetters?: any;
-  [fn: string]: (str:string) => void;
-}
-type uniformSetters = {
-  [fn: string]: (str: string) => void;
-}
-
-
 
 const webglUtils = init();
 function init () {
   "use strict";
-
-  var topWindow = this;
-
-  /** @module webgl-utils */
-
-  function isInIFrame(w?) {
-    w = w || topWindow;
-    return w !== w.top;
-  }
-
-  if (!isInIFrame()) {
-    console.log("%c%s", 'color:blue;font-weight:bold;', 'for more about webgl-utils.js see:');  // eslint-disable-line
-    console.log("%c%s", 'color:blue;font-weight:bold;', 'http://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html');  // eslint-disable-line
-  }
-
-  /**
-   * Wrapped logging function.
-   * @param {string} msg The message to log.
-   */
-  function error(msg:string) {
-    if (topWindow.console) {
-      if (topWindow.console.error) {
-        topWindow.console.error(msg);
-      } else if (topWindow.console.log) {
-        topWindow.console.log(msg);
-      }
-    }
-  }
-
 
   /**
    * Error Callback
@@ -510,7 +493,7 @@ function init () {
    *        uniforms.
    * @memberOf module:webgl-utils
    */
-  function setUniforms(setters, values) {
+  function setUniforms(setters: Setters, values) {
     setters = setters.uniformSetters || setters;
     Object.keys(values).forEach(function (name) {
       var setter = setters[name];
@@ -529,7 +512,7 @@ function init () {
    * @return {Object.<string, function>} an object with a setter for each attribute by name.
    * @memberOf module:webgl-utils
    */
-  function createAttributeSetters(gl, program) {
+  function createAttributeSetters(gl:WebGLRenderingContext, program: WebGLProgram) {
     var attribSetters = {
     };
 
@@ -628,7 +611,8 @@ function init () {
    * @param {Object.<string, module:webgl-utils.AttribInfo>} attribs AttribInfos mapped by attribute name.
    * @param {WebGLBuffer} [indices] an optional ELEMENT_ARRAY_BUFFER of indices
    */
-  function createVAOAndSetAttributes(gl, setters, attribs, indices) {
+  function createVAOAndSetAttributes(gl: WebGLRenderingContext, setters, attribs, indices) {
+
     var vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
     setAttributes(setters, attribs);
@@ -687,7 +671,7 @@ function init () {
    * @memberOf module:webgl-utils
    */
   function createProgramInfo(
-    gl, shaderSources, opt_attribs, opt_locations, opt_errorCallback) {
+    gl:WebGLRenderingContext, shaderSources:string[], opt_attribs?, opt_locations?, opt_errorCallback?) {
     // shaderSources = shaderSources.map(function (source) {
     //   var script = document.getElementById(source);
     //   return script ? script.text : source;
@@ -852,7 +836,7 @@ function init () {
     return augmentTypedArray(new Type(numComponents * numElements), numComponents);
   }
 
-  function createBufferFromTypedArray(gl, array, type, drawType) {
+  function createBufferFromTypedArray(gl: WebGLRenderingContext, array, type?, drawType?) {
     type = type || gl.ARRAY_BUFFER;
     var buffer = gl.createBuffer();
     gl.bindBuffer(type, buffer);
@@ -895,7 +879,7 @@ function init () {
     return a.buffer && a.buffer instanceof ArrayBuffer;
   }
 
-  function guessNumComponentsFromName(name, length) {
+  function guessNumComponentsFromName(name:string, length?:number) {
     var numComponents;
     if (name.indexOf("coord") >= 0) {
       numComponents = 2;
@@ -980,7 +964,7 @@ function init () {
    * @return {Object.<string, module:webgl-utils.AttribInfo>} the attribs
    * @memberOf module:webgl-utils
    */
-  function createAttribsFromArrays(gl, arrays, opt_mapping) {
+  function createAttribsFromArrays(gl: WebGLRenderingContext, arrays, opt_mapping): AttribInfo {
     var mapping = opt_mapping || createMapping(arrays);
     var attribs = {};
     Object.keys(mapping).forEach(function (attribName) {
@@ -999,7 +983,7 @@ function init () {
   /**
    * tries to get the number of elements from a set of arrays.
    */
-  function getNumElementsFromNonIndexedArrays(arrays) {
+  function getNumElementsFromNonIndexedArrays(arrays): number {
     var key = Object.keys(arrays)[0];
     var array = arrays[key];
     if (isArrayBuffer(array)) {
@@ -1139,8 +1123,8 @@ function init () {
    * @return {module:webgl-utils.BufferInfo} A BufferInfo
    * @memberOf module:webgl-utils
    */
-  function createBufferInfoFromArrays(gl, arrays, opt_mapping) {
-    var bufferInfo = {
+  function createBufferInfoFromArrays(gl: WebGLRenderingContext, arrays, opt_mapping?) {
+    var bufferInfo: BufferInfo = {
       attribs: createAttribsFromArrays(gl, arrays, opt_mapping),
     };
     var indices = arrays.indices;
@@ -1179,8 +1163,8 @@ function init () {
    * @return {Object<string, WebGLBuffer>} returns an object with one WebGLBuffer per array
    * @memberOf module:webgl-utils
    */
-  function createBuffersFromArrays(gl, arrays) {
-    var buffers = {};
+  function createBuffersFromArrays(gl: WebGLRenderingContext, arrays): Buffers {
+    var buffers: Buffers = {};
     Object.keys(arrays).forEach(function (key) {
       var type = key === "indices" ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
       var array = makeTypedArray(arrays[key], name);
@@ -1211,7 +1195,7 @@ function init () {
    * @param {number} [offset] An optional offset. Defaults to 0.
    * @memberOf module:webgl-utils
    */
-  function drawBufferInfo(gl, bufferInfo, primitiveType, count, offset) {
+  function drawBufferInfo(gl, bufferInfo, primitiveType?, count?: number, offset?: number) {
     var indices = bufferInfo.indices;
     primitiveType = primitiveType === undefined ? gl.TRIANGLES : primitiveType;
     var numElements = count === undefined ? bufferInfo.numElements : count;
