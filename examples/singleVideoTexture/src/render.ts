@@ -1,10 +1,9 @@
 import { createProgram, resize } from '../../utils';
 import { vertex, fragment } from '../shader';
-import {Attributes} from './attributes';
-import elements, {Elements} from './elements';
+import attributes, {Attributes} from './attributes';
 
 export interface YUVOption {
-  srcs: string[];
+  src: string;
   canvas: HTMLCanvasElement
 }
 
@@ -15,10 +14,9 @@ export default class YUVRender {
   attributes: any;
   uniformSetters: any;
   attribSetters: any;
-  videos: HTMLVideoElement[];
+  video: HTMLVideoElement;
   attribs: Attributes;
   uniforms: any;
-  elements: Elements
   enabled = true;
   fps = 25;
   fpsCount = 0;
@@ -38,13 +36,13 @@ export default class YUVRender {
   play() {
     console.log('play');
     this.enabled = true;
-    this.videos.forEach(v => v.play());
+    this.video.play();
   }
 
   pause () {
     console.log('pause');
     this.enabled = false;
-    this.videos.forEach(v => v.pause());
+    this.video.pause();
   }
 
   render() {
@@ -61,22 +59,20 @@ export default class YUVRender {
 
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    elements.forEach( (attribs, index) => {
-      gl.useProgram(this.program);
-      this.initTexture(this.videos[index]);
+    gl.useProgram(this.program);
+    this.initTexture(this.video);
 
-      this.bindBuffer(attribs);
-      this.setUniform();
+    this.bindBuffer(this.attribs);
+    this.setUniform();
 
-      var offset = 0;
-      var count = 6;
-      gl.drawArrays(gl.TRIANGLES, offset, count);
-    })
+    var offset = 0;
+    var count = 6;
+    gl.drawArrays(gl.TRIANGLES, offset, count);
 
   }
 
   resize(w?: number, h?: number) {
-    resize(this.canvas, window.innerWidth, window.innerHeight);
+    resize(this.canvas, 360, 180);
   }
 
   initAttributes() { 
@@ -84,18 +80,16 @@ export default class YUVRender {
     let {
       gl, program
     } = this;
-    this.elements = elements.map( (el, index) => {
-      let attribs = Object.assign({}, el);
+    let attribs= this.attribs = Object.assign({}, attributes);
 
-      for (let k in attribs) {
-        let attr = attribs[k];
-        attr.location = gl.getAttribLocation(program, k);
-        attr.buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, attr.buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, attr.bufferSource, gl.STATIC_DRAW)
-      }
-      return attribs;
-    })
+    for (let k in attribs) {
+      let attr = attribs[k];
+      attr.location = gl.getAttribLocation(program, k);
+      attr.buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, attr.buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, attr.bufferSource, gl.STATIC_DRAW)
+    }
+    return attribs;
   }
   initUniform() {
     let {
@@ -114,17 +108,16 @@ export default class YUVRender {
   }
 
   initVideo(opt: YUVOption) {
-    this.videos = opt.srcs.map(src => {
 
-      let video = document.createElement('video');
-      video.src = src;
-      video.loop = true;
-      video.muted = true;
-      video.autoplay = true;
-      video.crossOrigin = 'anonymous'
-      video.play();
-      return video;
-    })
+    let video =this.video = document.createElement('video');
+
+    video.src = opt.src;
+    video.loop = true;
+    video.muted = true;
+    video.autoplay = true;
+    video.crossOrigin = 'anonymous'
+    video.play();
+    return video;
   }
 
   bindBuffer(attribs) {
