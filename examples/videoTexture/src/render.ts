@@ -61,7 +61,8 @@ export default class YUVRender {
 
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    elements.forEach( (attribs, index) => {
+    this.videos.forEach( (v, index) => {
+      let attribs = elements[index]
       gl.useProgram(this.program);
       this.initTexture(this.videos[index]);
 

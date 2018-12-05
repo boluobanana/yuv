@@ -27,8 +27,8 @@ export default class YUVRender {
     this.program = createProgram(this.gl, vertex, fragment);
 
     this.resize();
+    console.log('123');
     this.initVideo(opt);
-    this.initAttributes();
     this.initUniform();
 
   }
@@ -61,6 +61,7 @@ export default class YUVRender {
 
     gl.useProgram(this.program);
     this.initTexture(this.video);
+    this.initAttributes();
 
     this.bindBuffer(this.attribs);
     this.setUniform();
@@ -91,6 +92,7 @@ export default class YUVRender {
     }
     return attribs;
   }
+
   initUniform() {
     let {
       gl, program
@@ -101,6 +103,7 @@ export default class YUVRender {
         location: gl.getUniformLocation(program, "u_resolution")
       }
     }
+    // console.log(this.uniforms['u_resolution'].location)
   }
   setUniform() {
     let { gl, uniforms} = this;
@@ -125,7 +128,6 @@ export default class YUVRender {
       gl
     } = this;
     // console.log(attribs);
-
     for (let k in attribs) {
       let attr = attribs[k];
       gl.enableVertexAttribArray(attr.location);
@@ -141,10 +143,10 @@ export default class YUVRender {
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
     // Set the parameters so we can render any size image.
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     // Upload the image into the texture.
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);

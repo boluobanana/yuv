@@ -6,15 +6,13 @@ import videos from './assets/*.mp4';
 function main() {
     let canvas = document.querySelectorAll(`canvas`)
 
-  canvas.forEach(c => {
+  let renders = Array.from(canvas).map((c, i) => {
     let renderer = new YUVRender({
-      src: videos[1],
-      canvas: c
+      src: videos[1 + i],
+      canvas: c,
+      uuid: `uuid${i}`
     });
-    console.log(c);
-
     renderer.render();
-
     document.querySelector('button').onclick = _ => {
       if (renderer.enabled) {
         renderer.pause();
@@ -22,7 +20,14 @@ function main() {
         renderer.play();
       }
     }
+    return renderer;
   })
+
+  if (renders[0].gl === renders[1].gl) {
+    console.log('same gl');
+  } else {
+    console.log('diff gl')
+  }
 
 }
 

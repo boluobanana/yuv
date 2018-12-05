@@ -1,13 +1,13 @@
 import YUVRender from './src/render';
 
-import videos from './assets/*.mp4';
+import videos from './120p/*.mp4';
 
 
 function main() {
     let canvas: HTMLCanvasElement = document.querySelector(`canvas`)
 
     let renderer = new YUVRender({
-      srcs: new Array(25).fill(2).map((_, i) => videos[1]),
+      srcs: new Array(15).fill(2).map((_, i) => videos[1+i]),
       canvas
     });
 
