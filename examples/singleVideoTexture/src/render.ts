@@ -14,6 +14,7 @@ export default class YUVRender {
   attributes: any;
   uniformSetters: any;
   attribSetters: any;
+  texture: WebGLTexture;
   video: HTMLVideoElement;
   attribs: Attributes;
   uniforms: any;
@@ -27,10 +28,10 @@ export default class YUVRender {
     this.program = createProgram(this.gl, vertex, fragment);
 
     this.resize();
-    console.log('123');
     this.initVideo(opt);
     this.initUniform();
-
+    this.initTexture();
+    this.initAttributes();
   }
 
   play() {
@@ -57,19 +58,21 @@ export default class YUVRender {
     let gl = this.gl;
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
+    this.cleanBuffer();
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.useProgram(this.program);
-    this.initTexture(this.video);
     this.initAttributes();
 
-    this.bindBuffer(this.attribs);
+    this.renderTexture();
+
+    this.renderAttributes();
+    this.bindBuffer();
     this.setUniform();
 
     var offset = 0;
     var count = 6;
     gl.drawArrays(gl.TRIANGLES, offset, count);
-
   }
 
   resize(w?: number, h?: number) {
@@ -87,10 +90,22 @@ export default class YUVRender {
       let attr = attribs[k];
       attr.location = gl.getAttribLocation(program, k);
       attr.buffer = gl.createBuffer();
+
+    }
+    return attribs;
+  }
+
+  renderAttributes() {
+    let {
+      gl, attribs
+    } = this;
+
+    for (let k in attribs) {
+      let attr = attribs[k];
+
       gl.bindBuffer(gl.ARRAY_BUFFER, attr.buffer);
       gl.bufferData(gl.ARRAY_BUFFER, attr.bufferSource, gl.STATIC_DRAW)
     }
-    return attribs;
   }
 
   initUniform() {
@@ -103,8 +118,8 @@ export default class YUVRender {
         location: gl.getUniformLocation(program, "u_resolution")
       }
     }
-    // console.log(this.uniforms['u_resolution'].location)
   }
+
   setUniform() {
     let { gl, uniforms} = this;
     gl.uniform2f(uniforms['u_resolution'].location, gl.canvas.width, gl.canvas.height);
@@ -123,9 +138,9 @@ export default class YUVRender {
     return video;
   }
 
-  bindBuffer(attribs) {
+  bindBuffer() {
     let {
-      gl
+      gl, attribs
     } = this;
     // console.log(attribs);
     for (let k in attribs) {
@@ -136,21 +151,43 @@ export default class YUVRender {
     }
   }
 
-  initTexture(video) {
+  initTexture() {
 
     let {gl} = this;
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-
+    this.texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, this.texture);
     // Set the parameters so we can render any size image.
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-    // Upload the image into the texture.
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
-
   }
 
+  renderTexture() {
+    // Upload the image into the texture.
+    let {
+      gl, video
+    } = this;
+    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+  }
+
+  clean() {
+    this.cleanBuffer();
+    this.cleanTexture();
+  }
+  cleanBuffer() {
+    let { gl, attribs } = this;
+
+    for (let k in attribs) {
+      let attr = attribs[k];
+      gl.deleteBuffer(attr.buffer);
+    }
+  }
+  cleanTexture() {
+    let { gl } = this;
+
+    gl.deleteTexture(this.texture);
+  }
 }

@@ -1,6 +1,6 @@
 import YUVRender from './src/render';
 
-import videos from './assets/*.mp4';
+import videos from './360p/*.mp4';
 
 
 function main() {
