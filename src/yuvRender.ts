@@ -70,7 +70,7 @@ export default class YUVRender {
     let {
       gl, program
     } = this;
-    let attribs= this.attribs = Object.assign({}, attributes);
+    let attribs = this.attribs = Object.assign({}, attributes);
 
     for (let k in attribs) {
       let attr = attribs[k];
