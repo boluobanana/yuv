@@ -25,29 +25,32 @@ export const vertex = `
 `
 
 export const fragment = `
-  precision mediump float;
+  precision lowp float;
   // our texture
-  uniform sampler2D u_image;
+  uniform sampler2D y_texture;
+  uniform sampler2D u_texture;
+  uniform sampler2D v_texture;
 
   // the texCoords passed in from the vertex shader.
   varying vec2 v_texCoord;
 
   void main() {
-    float y,u,v, r, g, b;
-    r = texture2D(u_image, v_texCoord).r;
-    g = texture2D(u_image, v_texCoord).g;
-    b = texture2D(u_image, v_texCoord).b;
-    y = 0.299 * r + 0.587 * g + 0.114 * b;
-    u = 0.493 * ( b - y );
-    v = 0.877 * ( r - y ) ;
+    float fY = texture2D(y_texture, v_texCoord).x;
+    float fCb = texture2D(u_texture, v_texCoord).x;
+    float fCr = texture2D(v_texture, v_texCoord).x;
 
-    r = y + 1.5958 * v;
-    g = y - 0.39173 * u - 0.81290 * v;
-    b = y + 2.017 * u;
+    // Premultipy the Y...
+    float fYmul = fY * 1.1643828125;
 
-    gl_FragColor = vec4(r,g, b, 1.0);
+    // And convert that to RGB!
+    gl_FragColor = vec4(
+      fYmul + 1.59602734375 * fCr - 0.87078515625,
+      fYmul - 0.39176171875 * fCb - 0.81296875 * fCr + 0.52959375,
+      fYmul + 2.017234375   * fCb - 1.081390625,
+      1
+    );
 
-    // gl_FragColor = texture2D(u_image, v_texCoord);
+    // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 
   }
 `

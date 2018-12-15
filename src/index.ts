@@ -2,9 +2,14 @@ import { createProgram, resize } from './utils';
 import { vertex, fragment } from './shader';
 import attributes, {Attributes} from './attributes';
 
+const uniformKeys = ['u_resolution', 'y_texture', 'u_texture', 'v_texture'];
+const textureKeys = ['y_texture', 'u_texture', 'v_texture'];
+
 export interface YUVOption {
-  src: string;
   canvas: HTMLCanvasElement
+}
+type Textures = {
+  [name: string]: WebGLTexture
 }
 
 export default class YUVRender {
@@ -14,12 +19,10 @@ export default class YUVRender {
   attributes: any;
   uniformSetters: any;
   attribSetters: any;
-  texture: WebGLTexture;
+  textures: Textures = {};
   attribs: Attributes;
-  uniforms: any;
+  uniforms: any = {};
   enabled = true;
-  fps = 25;
-  fpsCount = 0;
 
   constructor(opt: YUVOption) {
     this.canvas = opt.canvas;
@@ -32,14 +35,38 @@ export default class YUVRender {
     this.initAttributes();
   }
 
+  static attach(canvas: HTMLCanvasElement) {
+    let instance = new YUVRender({
+      canvas
+    })
+
+    return instance;
+  }
+
+
+  drawFrame(frameData) {
+    let { gl } = this;
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    this.resize();
+    this.cleanBuffer();
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    gl.useProgram(this.program);
+    this.initAttributes();
+    this.renderAttributes();
+    this.renderTexture(frameData);
+    this.bindBuffer();
+    this.setUniform();
+
+    var offset = 0;
+    var count = 6;
+    gl.drawArrays(gl.TRIANGLES, offset, count);
+
+  }
+
   render() {
-    requestAnimationFrame(this.render.bind(this));
+
     if (!this.enabled) return;
-    if (this.fpsCount > 60 / this.fps) {
-      this.fpsCount = 0;
-      return
-    }
-    this.fpsCount += 1;
 
     let gl = this.gl;
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -50,7 +77,7 @@ export default class YUVRender {
     gl.useProgram(this.program);
     this.initAttributes();
 
-    this.renderTexture();
+    // this.renderTexture();
 
     this.renderAttributes();
     this.bindBuffer();
@@ -99,11 +126,11 @@ export default class YUVRender {
       gl, program
     } = this;
 
-    this.uniforms = {
-      'u_resolution': {
-        location: gl.getUniformLocation(program, "u_resolution")
+    uniformKeys.forEach(name => {
+      this.uniforms[name] = {
+        location: gl.getUniformLocation(program, name)
       }
-    }
+    })
   }
 
   setUniform() {
@@ -126,22 +153,46 @@ export default class YUVRender {
 
   initTexture() {
 
-    let {gl} = this;
-    this.texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, this.texture);
-    // Set the parameters so we can render any size image.
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    let { gl } = this;
 
+    textureKeys.forEach( (name, index) => {
+      let texture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      // Set the parameters so we can render any size image.
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+      this.textures[name] = texture;
+    })
   }
 
-  renderTexture() {
+  renderTexture(frameData) {
     // Upload the image into the texture.
-    let { gl } = this;
-    gl.bindTexture(gl.TEXTURE_2D, this.texture);
-    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+    let { gl, program } = this;
+    textureKeys.forEach((name, i) => {
+      let key = name.slice(0, 1);
+      let width = frameData[key].stride;
+      let height = key === 'y' ? frameData.format.height : frameData.format.chromaHeight;
+      let tex = this.textures[name];
+      let location = gl.getUniformLocation(program, name);
+
+      gl.uniform1i(location, i);  // texture unit 0
+      gl.activeTexture(gl.TEXTURE0 + i);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0, // mip level
+        gl.LUMINANCE, // internal format
+        width,
+        height,
+        0, // border
+        gl.LUMINANCE, // format
+        gl.UNSIGNED_BYTE, //type
+        frameData[key].bytes // data!
+      );
+    })
   }
 
   clean() {
@@ -156,9 +207,13 @@ export default class YUVRender {
       gl.deleteBuffer(attr.buffer);
     }
   }
+
   cleanTexture() {
     let { gl } = this;
 
-    gl.deleteTexture(this.texture);
+    textureKeys.forEach(name => {
+      let tex = this.textures[name];
+      gl.deleteTexture(tex);
+    })
   }
 }

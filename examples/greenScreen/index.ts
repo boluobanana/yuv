@@ -51,7 +51,7 @@ function render(images: Images) {
     1.0, 1.0
   ]), gl.STATIC_DRAW);
 
-  resize(canvas);
+  resize(canvas, 500, 500);
 
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 

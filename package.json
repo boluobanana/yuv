@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "start": "tsc"
+    "start": "tsc ",
+    "move": "tsc && rm -r ../bytertc-electron/demo/dist && mv dist ../bytertc-electron/demo"
   },
   "devDependencies": {
     "tslint": "^5.11.0",
