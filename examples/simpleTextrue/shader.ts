@@ -9,17 +9,15 @@ export const vertex = `
     gl_Position = a_position;
     v_texCoord = a_texCoord;
   }
-`
+`;
 
 export const fragment = `
   precision mediump float;
-  // our texture
-  uniform sampler2D u_image;
 
-  // the texCoords passed in from the vertex shader.
+  uniform sampler2D u_image;
   varying vec2 v_texCoord;
 
   void main() {
     gl_FragColor = texture2D(u_image, v_texCoord);
   }
-`
+`;

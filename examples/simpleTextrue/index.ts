@@ -1,54 +1,52 @@
 import { createProgram, resize } from '../utils';
 import { vertex, fragment } from './shader';
 // @ts-ignore
-import ImgGreen from '../assets/image/greenTaiger.jpg';
+import greenTaigerJpg from '../assets/image/greenTaiger.jpg';
 
 main();
 
 function main() {
-  let img = new Image();
-  img.src = ImgGreen;
+  const img = new Image();
+  img.src = greenTaigerJpg;
   img.onload = _ => {
-    render(img)
-  }
+    render(img);
+  };
 }
-
 
 function render(image: HTMLImageElement) {
   const canvas = document.querySelector('canvas');
   const gl = canvas.getContext('webgl');
 
-  var program = createProgram(gl, vertex, fragment);
+  const program = createProgram(gl, vertex, fragment);
 
-  var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
-  var texcoordLocation = gl.getAttribLocation(program, "a_texCoord");
+  const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+  const texcoordLocation = gl.getAttribLocation(program, 'a_texCoord');
 
-
-  var positionBuffer = gl.createBuffer();
+  const positionBuffer = gl.createBuffer();
   // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
     -1.0, 1.0,
-    1.0, 1.0,
-    -1.0, -1.0,
     -1.0, -1.0,
     1.0, 1.0,
+    1.0, 1.0,
+    -1.0, -1.0,
     1.0, -1.0,
-  ]), gl.STATIC_DRAW);
+  ]),           gl.STATIC_DRAW);
 
   // provide texture coordinates for the rectangle.
-  var texcoordBuffer = gl.createBuffer();
+  const texcoordBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
     0.0, 0.0,
+    0.0, 0.5,
     1.0, 0.0,
-    0.0, 1.0,
-    0.0, 1.0,
     1.0, 0.0,
-    1.0, 1.0
-  ]), gl.STATIC_DRAW);
+    0.0, 0.5,
+    1.0, 0.5,
+  ]),           gl.STATIC_DRAW);
 
-  var texture = gl.createTexture();
+  const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
   // Set the parameters so we can render any size image.
@@ -60,7 +58,7 @@ function render(image: HTMLImageElement) {
   // Upload the image into the texture.
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-  resize(canvas);
+  resize(canvas, 500, 500);
 
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
@@ -78,14 +76,13 @@ function render(image: HTMLImageElement) {
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
   // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-  var size = 2;          // 2 components per iteration
-  var type = gl.FLOAT;   // the data is 32bit floats
-  var normalize = false; // don't normalize the data
-  var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-  var offset = 0;        // start at the beginning of the buffer
+  let size = 2;          // 2 components per iteration
+  let type = gl.FLOAT;   // the data is 32bit floats
+  let normalize = false; // don't normalize the data
+  let stride = 0;  // 0 = move forward size * sizeof(type) each iteration to get the next position
+  let offset = 0;        // start at the beginning of the buffer
   gl.vertexAttribPointer(
-    positionAttributeLocation, size, type, normalize, stride, offset)
-
+    positionAttributeLocation, size, type, normalize, stride, offset);
 
   // Turn on the teccord attribute
   gl.enableVertexAttribArray(texcoordLocation);
@@ -94,16 +91,16 @@ function render(image: HTMLImageElement) {
   gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
 
   // Tell the position attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-  var size = 2;          // 2 components per iteration
-  var type = gl.FLOAT;   // the data is 32bit floats
-  var normalize = false; // don't normalize the data
-  var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-  var offset = 0;        // start at the beginning of the buffer
+  size = 2;          // 2 components per iteration
+  type = gl.FLOAT;   // the data is 32bit floats
+  normalize = false; // don't normalize the data
+  stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+  offset = 0;        // start at the beginning of the buffer
   gl.vertexAttribPointer(
-    texcoordLocation, size, type, normalize, stride, offset)
+    texcoordLocation, size, type, normalize, stride, offset);
   // draw
-  var primitiveType = gl.TRIANGLES;
-  var offset = 0;
-  var count = 6;
+  const primitiveType = gl.TRIANGLES;
+  offset = 0;
+  const count = 6;
   gl.drawArrays(primitiveType, offset, count);
 }

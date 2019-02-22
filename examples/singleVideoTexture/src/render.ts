@@ -1,10 +1,10 @@
 import { createProgram, resize } from '../../utils';
 import { vertex, fragment } from '../shader';
-import attributes, {Attributes} from './attributes';
+import attributes, { Attributes } from './attributes';
 
 export interface YUVOption {
   src: string;
-  canvas: HTMLCanvasElement
+  canvas: HTMLCanvasElement;
 }
 
 export default class YUVRender {
@@ -19,7 +19,7 @@ export default class YUVRender {
   attribs: Attributes;
   uniforms: any;
   enabled = true;
-  fps = 25;
+  fps = 15;
   fpsCount = 0;
 
   constructor(opt: YUVOption) {
@@ -51,11 +51,11 @@ export default class YUVRender {
     if (!this.enabled) return;
     if (this.fpsCount > 60 / this.fps) {
       this.fpsCount = 0;
-      return
+      return;
     }
     this.fpsCount += 1;
 
-    let gl = this.gl;
+    const gl = this.gl;
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
     this.cleanBuffer();
@@ -70,8 +70,8 @@ export default class YUVRender {
     this.bindBuffer();
     this.setUniform();
 
-    var offset = 0;
-    var count = 6;
+    const offset = 0;
+    const count = 6;
     gl.drawArrays(gl.TRIANGLES, offset, count);
   }
 
@@ -79,15 +79,15 @@ export default class YUVRender {
     resize(this.canvas, 360, 180);
   }
 
-  initAttributes() { 
+  initAttributes() {
 
-    let {
-      gl, program
+    const {
+      gl, program,
     } = this;
-    let attribs= this.attribs = Object.assign({}, attributes);
+    const attribs = this.attribs = Object.assign({}, attributes);
 
-    for (let k in attribs) {
-      let attr = attribs[k];
+    for (const k in attribs) {
+      const attr = attribs[k];
       attr.location = gl.getAttribLocation(program, k);
       attr.buffer = gl.createBuffer();
 
@@ -96,64 +96,64 @@ export default class YUVRender {
   }
 
   renderAttributes() {
-    let {
-      gl, attribs
+    const {
+      gl, attribs,
     } = this;
 
-    for (let k in attribs) {
-      let attr = attribs[k];
+    for (const k in attribs) {
+      const attr = attribs[k];
 
       gl.bindBuffer(gl.ARRAY_BUFFER, attr.buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, attr.bufferSource, gl.STATIC_DRAW)
+      gl.bufferData(gl.ARRAY_BUFFER, attr.bufferSource, gl.STATIC_DRAW);
     }
   }
 
   initUniform() {
-    let {
-      gl, program
+    const {
+      gl, program,
     } = this;
 
     this.uniforms = {
-      'u_resolution': {
-        location: gl.getUniformLocation(program, "u_resolution")
-      }
-    }
+      u_resolution: {
+        location: gl.getUniformLocation(program, 'u_resolution'),
+      },
+    };
   }
 
   setUniform() {
-    let { gl, uniforms} = this;
+    const { gl, uniforms } = this;
     gl.uniform2f(uniforms['u_resolution'].location, gl.canvas.width, gl.canvas.height);
   }
 
   initVideo(opt: YUVOption) {
 
-    let video =this.video = document.createElement('video');
+    const video = this.video = document.createElement('video');
 
     video.src = opt.src;
     video.loop = true;
     video.muted = true;
     video.autoplay = true;
-    video.crossOrigin = 'anonymous'
+    video.crossOrigin = 'anonymous';
     video.play();
     return video;
   }
 
   bindBuffer() {
-    let {
-      gl, attribs
+    const {
+      gl, attribs,
     } = this;
     // console.log(attribs);
-    for (let k in attribs) {
-      let attr = attribs[k];
+    for (const k in attribs) {
+      const attr = attribs[k];
       gl.enableVertexAttribArray(attr.location);
       gl.bindBuffer(gl.ARRAY_BUFFER, attr.buffer);
-      gl.vertexAttribPointer(attr.location, attr.size || attr.numComponents, attr.type || gl.FLOAT, attr.normalize || false, attr.stride || 0, attr.offset || 0)
+      gl.vertexAttribPointer(attr.location, attr.size || attr.numComponents, attr.type || gl.FLOAT, attr.normalize || false, attr.stride || 0, attr.offset || 0);
     }
   }
 
   initTexture() {
 
-    let {gl} = this;
+    const { gl } = this;
     this.texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
     // Set the parameters so we can render any size image.
@@ -166,8 +166,8 @@ export default class YUVRender {
 
   renderTexture() {
     // Upload the image into the texture.
-    let {
-      gl, video
+    const {
+      gl, video,
     } = this;
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
@@ -178,15 +178,15 @@ export default class YUVRender {
     this.cleanTexture();
   }
   cleanBuffer() {
-    let { gl, attribs } = this;
+    const { gl, attribs } = this;
 
-    for (let k in attribs) {
-      let attr = attribs[k];
+    for (const k in attribs) {
+      const attr = attribs[k];
       gl.deleteBuffer(attr.buffer);
     }
   }
   cleanTexture() {
-    let { gl } = this;
+    const { gl } = this;
 
     gl.deleteTexture(this.texture);
   }

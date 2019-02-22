@@ -1,10 +1,9 @@
 
-
 export function createShader(gl: WebGLRenderingContext, type, source):WebGLShader {
-  var shader = gl.createShader(type);
+  const shader = gl.createShader(type);
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
-  var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+  const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
   if (success) {
     return shader;
   }
@@ -13,15 +12,19 @@ export function createShader(gl: WebGLRenderingContext, type, source):WebGLShade
   gl.deleteShader(shader);
 }
 
-export function createProgram(gl: WebGLRenderingContext, vertexShaderSource: string, fragmentShaderSource: string): WebGLProgram {
-  var program = gl.createProgram();
-  let vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-  let fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+export function createProgram(
+  gl: WebGLRenderingContext,
+  vertexShaderSource: string,
+  fragmentShaderSource: string): WebGLProgram {
+
+  const program = gl.createProgram();
+  const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+  const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
 
   gl.attachShader(program, vertexShader);
   gl.attachShader(program, fragmentShader);
   gl.linkProgram(program);
-  var success = gl.getProgramParameter(program, gl.LINK_STATUS);
+  const success = gl.getProgramParameter(program, gl.LINK_STATUS);
   if (success) {
     return program;
   }
@@ -31,27 +34,27 @@ export function createProgram(gl: WebGLRenderingContext, vertexShaderSource: str
 }
 
 export function resize(canvas: HTMLCanvasElement, w, h) {
-  var realToCSSPixels = window.devicePixelRatio
+  const realToCSSPixels = window.devicePixelRatio;
   canvas.width = w;
   canvas.height = h;
   canvas.style.width = `${w}px`;
   canvas.style.height = `${h}px`;
 
-  var displayWidth = Math.floor(canvas.clientWidth * realToCSSPixels),
-    displayHeight = Math.floor(canvas.clientHeight * realToCSSPixels);
+  const displayWidth = Math.floor(canvas.clientWidth * realToCSSPixels);
+  const displayHeight = Math.floor(canvas.clientHeight * realToCSSPixels);
 
-  if (canvas.width != displayWidth ||
-    canvas.height != displayHeight) {
-    canvas.width = displayWidth
-    canvas.height = displayHeight
+  if (canvas.width !== displayWidth ||
+    canvas.height !== displayHeight) {
+    canvas.width = displayWidth;
+    canvas.height = displayHeight;
   }
 }
 
 export function setRectangle(gl, x, y, width, height) {
-  var x1 = x;
-  var x2 = x + width;
-  var y1 = y;
-  var y2 = y + height;
+  const x1 = x;
+  const x2 = x + width;
+  const y1 = y;
+  const y2 = y + height;
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
     x1, y1,
     x2, y1,
@@ -59,25 +62,25 @@ export function setRectangle(gl, x, y, width, height) {
     x1, y2,
     x2, y1,
     x2, y2,
-  ]), gl.STATIC_DRAW);
+  ]),           gl.STATIC_DRAW);
 }
 
 export function createTextures(gl, program, images) {
 
-  let texs = images.map( (img, i) => {
+  const texs = images.map((img, i) => {
     return createTexutre(gl, program, img, i);
-  })
+  });
 
   texs.forEach((tex, i) => {
-    var u_imageLocation = gl.getUniformLocation(program, `u_image${i}`);
+    const u_imageLocation = gl.getUniformLocation(program, `u_image${i}`);
     gl.uniform1i(u_imageLocation, i);  // texture unit 0
     gl.activeTexture(gl.TEXTURE0 + i);
     gl.bindTexture(gl.TEXTURE_2D, tex);
-  })
+  });
 }
 
 export function createTexutre(gl: WebGLRenderingContext, program, img:HTMLImageElement, index:number) {
-  var texture1 = gl.createTexture();
+  const texture1 = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture1);
 
   // Set the parameters so we can render any size image.
@@ -91,26 +94,26 @@ export function createTexutre(gl: WebGLRenderingContext, program, img:HTMLImageE
 }
 
 export function loadImages(urls, callback) {
-  var images = [];
-  var imagesToLoad = urls.length;
+  const images = [];
+  let imagesToLoad = urls.length;
 
   // 每个图像加载完成后调用一次
-  var onImageLoad = function () {
+  const onImageLoad = function () {
     --imagesToLoad;
     // 如果所有图像都加载完成就调用回调函数
-    if (imagesToLoad == 0) {
+    if (imagesToLoad === 0) {
       callback(images);
     }
   };
 
-  for (var ii = 0; ii < imagesToLoad; ++ii) {
-    var image = loadImage(urls[ii], onImageLoad);
+  for (let ii = 0; ii < imagesToLoad; ++ii) {
+    const image = loadImage(urls[ii], onImageLoad);
     images.push(image);
   }
 }
 
 function loadImage(url, callback) {
-  var image = new Image();
+  const image = new Image();
   image.src = url;
   image.onload = callback;
   return image;

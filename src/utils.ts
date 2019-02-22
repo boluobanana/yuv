@@ -37,8 +37,8 @@ export function resize(canvas: HTMLCanvasElement, w, h) {
   canvas.style.width = `${w}px`;
   canvas.style.height = `${h}px`;
 
-  var displayWidth = Math.floor(canvas.clientWidth * realToCSSPixels),
-    displayHeight = Math.floor(canvas.clientHeight * realToCSSPixels);
+  var displayWidth = Math.floor(canvas.width * realToCSSPixels),
+    displayHeight = Math.floor(canvas.height * realToCSSPixels);
 
   if (canvas.width != displayWidth ||
     canvas.height != displayHeight) {

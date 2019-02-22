@@ -49,8 +49,5 @@ export const fragment = `
       fYmul + 2.017234375   * fCb - 1.081390625,
       1
     );
-
-    // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-
   }
 `

@@ -5,6 +5,29 @@ import attributes, {Attributes} from './attributes';
 const uniformKeys = ['u_resolution', 'y_texture', 'u_texture', 'v_texture'];
 const textureKeys = ['y_texture', 'u_texture', 'v_texture'];
 
+type Format = {
+  width: number,
+  height: number,
+  chromaWidth: number,
+  chromaHeight: number,
+  cropTop: number,
+  cropLeft: number,
+  cropWidth: number,
+  cropHeight: number,
+  displayHeight: number
+  displayWidth: number
+}
+type ColorData = {
+  bytes: Uint8Array,
+  stride: number
+}
+type FrameData = {
+  format: Format,
+  y: ColorData,
+  u: ColorData,
+  v: ColorData
+}
+
 export interface YUVOption {
   canvas: HTMLCanvasElement
 }
@@ -44,10 +67,10 @@ export default class YUVRender {
   }
 
 
-  drawFrame(frameData) {
+  drawFrame(frameData: FrameData) {
     let { gl } = this;
+    this.tryResize(frameData);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    this.resize();
     this.cleanBuffer();
     gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -88,8 +111,19 @@ export default class YUVRender {
     gl.drawArrays(gl.TRIANGLES, offset, count);
   }
 
+  tryResize(frameData: FrameData) {
+    let format = frameData.format;
+    let { displayWidth, displayHeight } = format;
+    let { width, height } = this.canvas;
+    if (displayWidth !== width || displayHeight !== height) {
+      this.resize(displayWidth, displayHeight);
+    }
+  }
+
   resize(w?: number, h?: number) {
-    resize(this.canvas, 360, 180);
+    // resize(this.canvas, w || 360, h || 180);
+    this.canvas.width = w;
+    this.canvas.height = h;
   }
 
   initAttributes() { 
@@ -168,7 +202,7 @@ export default class YUVRender {
     })
   }
 
-  renderTexture(frameData) {
+  renderTexture(frameData: FrameData) {
     // Upload the image into the texture.
     let { gl, program } = this;
     textureKeys.forEach((name, i) => {
