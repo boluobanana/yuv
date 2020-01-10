@@ -11,13 +11,18 @@ function main() {
 
   const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
 
-  const positionBuffer = gl.createBuffer();
+  // 向webgl去获取一个地址
+  var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
 
+  console.log(positionAttributeLocation);
+
+  var positionBuffer = gl.createBuffer();
+  // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   const positions = [
     0, 0,
-    0, 1,
-    1, 0,
+    0, 0.5,
+    0.5, 0,
   ];
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
@@ -37,14 +42,12 @@ function main() {
   // 绑定position的arrayBuffer
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-  // 告诉attribute 如何去读取buffer的数据
-  const size = 2;          // 每数据的大小
-  const type = gl.FLOAT;   // 数据类型
-  const normalize = false; // 是否需要归一数据
-
-  // 每次数据读取后需要偏移 stride * sizeof(type)
-  const stride = 0;
-  let offset = 0;        // 起始的偏移量
+  // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+  var size = 2;          // 2 components per iteration
+  var type = gl.FLOAT;   // the data is 32bit floats
+  var normalize = false; // don't normalize the data
+  var stride = 0;        // 表示每一次计算后，需要偏移的量。0 表示数据是紧挨着的，1 表示数据读取后跳过一位在读取
+  var offset = 0;        // start at the beginning of the buffer
   gl.vertexAttribPointer(
     positionAttributeLocation, size, type, normalize, stride, offset);
 
