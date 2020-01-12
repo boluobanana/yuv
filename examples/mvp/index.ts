@@ -9,10 +9,9 @@ function main() {
 
   const program = createProgram(gl, vertex, fragment);
 
-  const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
 
   // 向webgl去获取一个地址
-  var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+  const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
 
   console.log(positionAttributeLocation);
 

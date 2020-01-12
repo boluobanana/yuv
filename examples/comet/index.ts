@@ -14,16 +14,19 @@ interface GLData {
 
 class Comet {
   canvas: HTMLCanvasElement;
+  textureCanvas: HTMLCanvasElement;
   gl: WebGLRenderingContext;
   program: WebGLProgram;
 
   attrs: GLData[];
   cometData: GLData;
+  cometUV: GLData;
   uniforms: any;
 
-  points: number[][] = [];
+  points: [number, number][] = [];
   headSize = 10;
   tailSize = 4;
+  weakSpeed = 0.02;
 
   constructor(canvas: HTMLCanvasElement) {
     const gl = canvas.getContext('webgl');
@@ -38,22 +41,32 @@ class Comet {
       buffer: gl.createBuffer(),
       data: [],
     };
+    this.cometUV = {
+      location: gl.getAttribLocation(program, 'a_comet_uv'),
+      buffer: gl.createBuffer(),
+      data: [],
+      size: 2,
+    }
 
-    this.attrs = [this.cometData];
+    console.log(this.cometUV);
+    this.attrs = [this.cometData, this.cometUV];
 
     this.uniforms = {
       'u_resolution': {
         location: gl.getUniformLocation(program, "u_resolution")
       }
     }
-
-    console.log(canvas.width, canvas.height);
+    // console.log(canvas.width, canvas.height);
 
     canvas.addEventListener('mousemove', e => {
       let x = e.clientX;
       let y = e.clientY;
-      this.points.push([x,y]);
-    })
+
+      this.points.push([x, y]);
+    });
+
+    this.genTexture();
+    this.bindTexture();
   }
 
   render() {
@@ -66,10 +79,15 @@ class Comet {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     this.genDataAndBindData();
+    const len = this.points.length;
+    if (len > 1) {
 
-    if (this.points.length > 1) {
-      this.points.shift();
+      let removeCount = Math.floor(len * this.weakSpeed);
+      this.points.splice(0, removeCount > 1 ? removeCount : 1 );
     }
+
+    // console.log(len, len * this.weakSpeed);
+
     // Tell it to use our program (pair of shaders)
     gl.useProgram(this.program);
 
@@ -95,26 +113,44 @@ class Comet {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.cometData.buffer);
     let tail = this.points[0] || [0,0];
     let head = this.points[this.points.length - 1] || [100,100];
+
     let headSize = this.headSize;
+    let tailSize = this.tailSize;
 
     // console.log(tail, head, headSize);
-    let circly = this.genCircly(head[0],head[1], headSize, 16);
-    this.cometData.data = [
-      ...circly,
+    let circly = this.genCircly(head[0], head[1], headSize, 16);
+    let cometTail = this.genTrack(this.points, headSize, tailSize);
+    let x = head[0];
+    let y = head[1];
 
-      // x,y,// 左上
-      // 10 + x, 0 + y, // 右上
-      // 0 + x, 10 + y, // 右下
-      // 0 + x, 10 + y, //
-      // 10 + x, 0 + y,
-      // 10 + x, 10 + y,
-      tail[0], tail[1],
-      head[0] + headSize, head[1] + headSize,
-      head[0], head[1]
+    this.cometData.data = [
+      // ...circly,
+      // ...cometTail,
+      x,y,// 左上
+      40 + x, 0 + y, // 右上
+      0 + x, 40 + y, // 右下
+      0 + x, 40 + y, //
+      40 + x, 0 + y,
+      40 + x, 40 + y,
+      // tail[0], tail[1],
+      // head[0] + headSize, head[1] + headSize,
+      // head[0], head[1]
     ];
     // console.log(this.cometData.data);
 
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.cometData.data), gl.STATIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.cometUV.buffer);
+    this.cometUV.data = [
+      0.0, 0.0,
+      0.0, 1.0,
+      1.0, 0.0,
+      1.0, 0.0,
+      0.0, 1.0,
+      1.0, 1.0,
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.cometUV.data), gl.STATIC_DRAW);
+
   }
 
   bindBuffer() {
@@ -158,6 +194,83 @@ class Comet {
     // console.log(vertices);
 
     return vertices;
+      }
+
+  genTrack(points: [number, number][], maxWidth: number, minHight: number) {
+    const len = points.length;
+    const realPoints = [];
+    let realGen = this.realGen;
+
+    for (let i = 0; i < len - 1; i++) {
+      const a = points[i];
+      const b = points[i + 1];
+      const width = (maxWidth - minHight) * i / len + minHight;
+      const newPoints = realGen(a, b, width);
+
+      realPoints.push(newPoints[0]);
+      realPoints.push(newPoints[1]);
+      realPoints.push(newPoints[2]);
+      realPoints.push(newPoints[3]);
+    }
+
+    for (let i = 0; i < realPoints.length - 1; i = i + 6) {
+      let nx1 = realPoints[i + 2];
+      let ny1 = realPoints[i + 3];
+
+      let nx2 = realPoints[i + 4];
+      let ny2 = realPoints[i + 5];
+
+      if (nx1 !== undefined && nx2 !== undefined && ny1 !== undefined && ny2 !== undefined) {
+        realPoints.splice(i+2, 0, nx1,ny1, nx2,ny2);
+      }
+
+    }
+
+    return realPoints;
+  }
+
+  realGen(a: [number, number], b: [number, number], width: number) {
+    let alpha = Math.PI / 2 - Math.atan( Math.abs((b[0] - a[0]) / (b[1] - a[1])) );
+    const wXSin = width * Math.sin(alpha);
+    const wXCos = width * Math.cos(alpha);
+    let cx = a[0] - wXSin;
+    let cy = a[1] - wXCos;
+    let dx = a[0] + wXSin;
+    let dy = a[1] + wXCos;
+
+    return [cx, cy, dx, dy];
+  }
+
+
+  genTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 100;
+    canvas.height = 100;
+    this.textureCanvas = canvas;
+    const ctx = canvas.getContext('2d');
+    const grd = ctx.createLinearGradient(0, 0, 100, 0);
+    grd.addColorStop(0, "rgba(0,0,0,0)");
+    grd.addColorStop(1, "rgba(0,0,0,1.0)");
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, 100, 100);
+
+    document.body.append(canvas);
+    return canvas;
+  }
+
+  bindTexture() {
+    const gl = this.gl;
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    // Set the parameters so we can render any size image.
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    // Upload the image into the texture.
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.textureCanvas);
   }
 }
 

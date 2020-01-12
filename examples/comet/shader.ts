@@ -1,10 +1,13 @@
 export const vertex = `
   attribute vec2 a_comet_position;
-  varying vec2 v_color;
+  attribute vec2 a_comet_uv;
   uniform vec2 u_resolution;
 
+  varying vec2 v_comet_position;
+  varying vec2 v_comet_uv;
+
   void main() {
-    // v_color = a_comet_position;
+    v_comet_uv = a_comet_uv;
 
     // convert the rectangle from pixels to 0.0 to 1.0
     vec2 zeroToOne = a_comet_position / u_resolution;
@@ -25,9 +28,12 @@ export const vertex = `
 export const fragment = `
   precision mediump float;
 
-  // varying vec2 v_color;
+  varying vec2 v_comet_uv;
+  uniform sampler2D u_image;
 
   void main() {
-    gl_FragColor = vec4(1, 0, 0.5, 1.0);
+    // gl_FragColor = v_comet_uv;
+
+    gl_FragColor = texture2D(u_image, v_comet_uv);
   }
 `
