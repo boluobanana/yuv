@@ -45,7 +45,7 @@ class Comet {
       location: gl.getAttribLocation(program, 'a_comet_uv'),
       buffer: gl.createBuffer(),
       data: [],
-      size: 2,
+      size: 1,
     }
 
     console.log(this.cometUV);
@@ -65,8 +65,8 @@ class Comet {
       this.points.push([x, y]);
     });
 
-    this.genTexture();
-    this.bindTexture();
+    // this.genTexture();
+    // this.bindTexture();
   }
 
   render() {
@@ -124,14 +124,14 @@ class Comet {
     let y = head[1];
 
     this.cometData.data = [
-      // ...circly,
-      // ...cometTail,
-      x,y,// 左上
-      40 + x, 0 + y, // 右上
-      0 + x, 40 + y, // 右下
-      0 + x, 40 + y, //
-      40 + x, 0 + y,
-      40 + x, 40 + y,
+      ...circly,
+      ...cometTail,
+      // x,y,// 左上
+      // 40 + x, 0 + y, // 右上
+      // 0 + x, 40 + y, // 右下
+      // 0 + x, 40 + y, //
+      // 40 + x, 0 + y,
+      // 40 + x, 40 + y,
       // tail[0], tail[1],
       // head[0] + headSize, head[1] + headSize,
       // head[0], head[1]
@@ -141,14 +141,16 @@ class Comet {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.cometData.data), gl.STATIC_DRAW);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.cometUV.buffer);
-    this.cometUV.data = [
-      0.0, 0.0,
-      0.0, 1.0,
-      1.0, 0.0,
-      1.0, 0.0,
-      0.0, 1.0,
-      1.0, 1.0,
-    ];
+    this.cometUV.data = [];
+    for (let i = 0; i < circly.length / 2; i++) {
+      this.cometUV.data.push(1);
+    }
+
+    let dataLen = cometTail.length / 2;
+    for (let i = 0; i < dataLen; i++) {
+      this.cometUV.data.push( i / dataLen);
+    }
+
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.cometUV.data), gl.STATIC_DRAW);
 
   }
