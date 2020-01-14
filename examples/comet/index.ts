@@ -48,7 +48,6 @@ class Comet {
       size: 1,
     }
 
-    console.log(this.cometUV);
     this.attrs = [this.cometData, this.cometUV];
 
     this.uniforms = {
@@ -56,7 +55,6 @@ class Comet {
         location: gl.getUniformLocation(program, "u_resolution")
       }
     }
-    // console.log(canvas.width, canvas.height);
 
     canvas.addEventListener('mousemove', e => {
       let x = e.clientX;
@@ -65,8 +63,6 @@ class Comet {
       this.points.push([x, y]);
     });
 
-    // this.genTexture();
-    // this.bindTexture();
   }
 
   render() {
@@ -79,9 +75,9 @@ class Comet {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     this.genDataAndBindData();
+
     const len = this.points.length;
     if (len > 1) {
-
       let removeCount = Math.floor(len * this.weakSpeed);
       this.points.splice(0, removeCount > 1 ? removeCount : 1 );
     }
@@ -111,32 +107,19 @@ class Comet {
   genDataAndBindData() {
     let gl = this.gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.cometData.buffer);
-    let tail = this.points[0] || [0,0];
     let head = this.points[this.points.length - 1] || [100,100];
 
     let headSize = this.headSize;
     let tailSize = this.tailSize;
 
-    // console.log(tail, head, headSize);
     let circly = this.genCircly(head[0], head[1], headSize, 16);
     let cometTail = this.genTrack(this.points, headSize, tailSize);
-    let x = head[0];
-    let y = head[1];
+    // let cometTail = this.genCirclyTrack(this.points, headSize, tailSize);
 
     this.cometData.data = [
       ...circly,
       ...cometTail,
-      // x,y,// 左上
-      // 40 + x, 0 + y, // 右上
-      // 0 + x, 40 + y, // 右下
-      // 0 + x, 40 + y, //
-      // 40 + x, 0 + y,
-      // 40 + x, 40 + y,
-      // tail[0], tail[1],
-      // head[0] + headSize, head[1] + headSize,
-      // head[0], head[1]
     ];
-    // console.log(this.cometData.data);
 
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.cometData.data), gl.STATIC_DRAW);
 
@@ -159,7 +142,7 @@ class Comet {
     let {
       gl, attrs
     } = this;
-    // console.log(attribs);
+
     for (let k in attrs) {
       let attr = attrs[k];
 
@@ -175,16 +158,12 @@ class Comet {
 
       var segment = s / segments * Math.PI * 2;
 
-      // vertex
-
       let pos_x = radius * Math.cos(segment);
       let pos_y = radius * Math.sin(segment);
 
-      // vertices.push(x,y);
       vertices.push(x - pos_x, y - pos_y);
     }
 
-    // console.log(vertices);
     for (let i = 0; i < vertices.length - 1; i = i + 6) {
       let nx = vertices[i+2] || vertices[0];
       let ny = vertices[i+3] || vertices[1];
@@ -193,16 +172,17 @@ class Comet {
 
     }
 
-    // console.log(vertices);
-
     return vertices;
-      }
+  }
 
   genTrack(points: [number, number][], maxWidth: number, minHight: number) {
     const len = points.length;
     const realPoints = [];
     let realGen = this.realGen;
 
+    if (len < minHight) {
+      return [];
+    }
     for (let i = 0; i < len - 1; i++) {
       const a = points[i];
       const b = points[i + 1];
@@ -243,21 +223,21 @@ class Comet {
     return [cx, cy, dx, dy];
   }
 
+  genCirclyTrack(points: [number, number][], maxWidth: number, minHight: number) {
+    const len = points.length;
+    let realPoints = [];
+    if (points.length <= maxWidth) {
+      return [];
+    }
 
-  genTexture() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 100;
-    canvas.height = 100;
-    this.textureCanvas = canvas;
-    const ctx = canvas.getContext('2d');
-    const grd = ctx.createLinearGradient(0, 0, 100, 0);
-    grd.addColorStop(0, "rgba(0,0,0,0)");
-    grd.addColorStop(1, "rgba(0,0,0,1.0)");
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, 0, 100, 100);
+    for (let i = 0; i< len; i++) {
+      let p = points[i];
+      const radius = (maxWidth - minHight) * i / len + minHight;
+      let vs = this.genCircly(p[0], p[1], radius, 8);
+      realPoints = [...realPoints, ...vs];
+    }
 
-    document.body.append(canvas);
-    return canvas;
+    return realPoints;
   }
 
   bindTexture() {
