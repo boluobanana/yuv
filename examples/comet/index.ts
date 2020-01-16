@@ -26,7 +26,7 @@ class Comet {
   points: [number, number][] = [];
   headSize = 10;
   tailSize = 4;
-  weakSpeed = 0.02;
+  weakSpeed = 0.04;
 
   constructor(canvas: HTMLCanvasElement) {
     const gl = canvas.getContext('webgl');
@@ -60,6 +60,16 @@ class Comet {
       let x = e.clientX;
       let y = e.clientY;
 
+      let now = x*x + y * y;
+      let len = this.points.length;
+
+      if (len > 0) {
+        const last = this.points[len-1];
+        if (Math.abs(last[0] * last[0] + last[1] * last[1] - now) < 2048) {
+          return;
+        }
+      }
+      // console.log([x,y]);
       this.points.push([x, y]);
     });
 
@@ -91,6 +101,7 @@ class Comet {
     this.setUniform();
 
     // draw
+    // var primitiveType = gl.POINTS;
     var primitiveType = gl.TRIANGLES;
     var offset = 0;
     var count = this.cometData.data.length / 2;
@@ -205,22 +216,59 @@ class Comet {
       if (nx1 !== undefined && nx2 !== undefined && ny1 !== undefined && ny2 !== undefined) {
         realPoints.splice(i+2, 0, nx1,ny1, nx2,ny2);
       }
-
     }
 
     return realPoints;
   }
 
   realGen(a: [number, number], b: [number, number], width: number) {
+    // let alpha = Math.PI / 2 - Math.atan( (b[0] - a[0]) / (b[1] - a[1]) );
     let alpha = Math.PI / 2 - Math.atan( Math.abs((b[0] - a[0]) / (b[1] - a[1])) );
-    const wXSin = width * Math.sin(alpha);
-    const wXCos = width * Math.cos(alpha);
-    let cx = a[0] - wXSin;
-    let cy = a[1] - wXCos;
-    let dx = a[0] + wXSin;
-    let dy = a[1] + wXCos;
 
-    return [cx, cy, dx, dy];
+    // 右下↘
+    if (a[0] < b[0] && a[1] < b[1]) {
+
+      const x = width * Math.sin(alpha);
+      const y = width * Math.cos(alpha);
+      return[a[0] + x, a[1] - y, a[0] - x, a[1] + y];
+    }
+
+    // 左下 ↙
+    if (a[0] > b[0] && a[1] < b[1]) {
+      const x = width * Math.sin(alpha);
+      const y = width * Math.cos(alpha);
+      return [a[0] - x, a[1] - y, a[0] + x, a[1] + y,];
+    }
+
+    // 左上 ↖
+    if (a[0] > b[0] && a[1] > b[1]) {
+      const x = width * Math.sin(alpha);
+      const y = width * Math.cos(alpha);
+      return [a[0] + x, a[1] - y, a[0] - x, a[1] + y];
+    }
+
+    // 右上 ↗
+    if (a[0] < b[0] && a[1] > b[1]) {
+      const x = width * Math.sin(alpha);
+      const y = width * Math.cos(alpha);
+      return [a[0] - x, a[1] - y, a[0] + x, a[1] + y];
+    }
+
+    if (a[0] == b[0]) {
+      return [a[0] - width, a[1], a[0] + width, a[1], ];
+    }
+    if (a[1] == b[1]) {
+      return [ a[0], a[1] - width, a[0], a[1] + width];
+    }
+    // const wXSin = width * Math.sin(alpha);
+    // const wXCos = width * Math.cos(alpha);
+    // let cx = a[0] - wXSin;
+    // let cy = a[1] - wXCos;
+    // let dx = a[0] + wXSin;
+    // let dy = a[1] + wXCos;
+
+    // return [cx, cy, dx, dy];
+    return [a[0],a[1], b[0], b[1]];
   }
 
   genCirclyTrack(points: [number, number][], maxWidth: number, minHight: number) {
