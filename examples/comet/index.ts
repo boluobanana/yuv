@@ -126,12 +126,100 @@ class Comet {
     let circly = this.genCircly(head[0], head[1], headSize, 16);
     let cometTail = this.genTrack(this.points, headSize, tailSize);
     // let cometTail = this.genCirclyTrack(this.points, headSize, tailSize);
+    let a = [20, 40], b = [20, 20], c = [40, 40],
+      d = [40,20], f = [60,33], e = [56, 52],
+      g= [58,62], h = [78,58], i = [58,78], j = [78,78],
+      k = [56,85], l = [78,89];
 
     this.cometData.data = [
       ...circly,
       ...cometTail,
-    ];
+      // 104.63785701582992, 104.01642717412919, // a
+      // 105.36214298417008, 111.98357282587081, // b
+      // 118.03278907045436, 102.93442185909129, // c
 
+      // 105.36214298417008, 111.98357282587081, // b
+      // 118.03278907045436, 102.93442185909129, // c
+      // 113.96721092954564, 111.06557814090871, // d
+
+      // 118.03278907045436, 102.93442185909129, // c
+      // 113.96721092954564, 111.06557814090871, // d
+      // 124.27672375890887, 105.44655248218224, // e
+
+      // 113.96721092954564, 111.06557814090871, // d
+      // 124.27672375890887, 105.44655248218224, // e
+      // 119.72327624109113, 114.55344751781776, // f
+
+      // 124.27672375890887, 105.44655248218224, // e
+      // 119.72327624109113, 114.55344751781776, // f
+      // 130.5206584473634, 107.9586831052732, // g
+
+      // 119.72327624109113, 114.55344751781776, // f
+      // 130.5206584473634, 107.9586831052732, // g
+      // 125.4793415526366, 118.0413168947268, // h
+
+      // 130.5206584473634, 107.9586831052732, // g
+      // 125.4793415526366, 118.0413168947268, // h
+      // 138.82718900382963, 112.13824879693628, // i
+
+      // 125.4793415526366, 118.0413168947268, // h
+      // 138.82718900382963, 112.13824879693628, // i
+      // 129.17281099617037, 119.86175120306372, // j
+
+      // 138.82718900382963, 112.13824879693628, // i
+      // 129.17281099617037, 119.86175120306372, // j
+      // 142.75690016434586, 116.24309983565414, // k
+
+      // 129.17281099617037, 119.86175120306372, // j
+      // 142.75690016434586, 116.24309983565414, // k
+      // 133.24309983565414, 125.75690016434586, // l
+
+      // 142.75690016434586, 116.24309983565414, // k
+      // 133.24309983565414, 125.75690016434586, // l
+      // 148.89951489491284, 122.70016170169572, // m
+
+      // 133.24309983565414, 125.75690016434586, // l
+      // 148.89951489491284, 122.70016170169572, // m
+      // 135.10048510508716, 127.29983829830428, // n
+
+      // 148.89951489491284, 122.70016170169572, // m
+      // 135.10048510508716, 127.29983829830428, // n
+      // 151.73960513226004, 129.89434212396284, // o
+
+      // 135.10048510508716, 127.29983829830428, // n
+      // 151.73960513226004, 129.89434212396284, // o
+      // 136.26039486773996, 132.10565787603716, // p
+
+      // 151.73960513226004, 129.89434212396284, // o
+      // 136.26039486773996, 132.10565787603716, // p
+      // 137.40615787508713, 134.49514978850175, // q
+
+      // 136.26039486773996, 132.10565787603716, // p
+      // 137.40615787508713, 134.49514978850175, // q
+      // 152.59384212491287, 141.50485021149825, // r
+
+      // 137.40615787508713, 134.49514978850175, // q
+      // 152.59384212491287, 141.50485021149825, // r
+      // 131.5871882868083, 146.05812552453887, // s
+      // 152.59384212491287, 141.50485021149825,
+      // 131.5871882868083, 146.05812552453887,
+      // 146.4128117131917, 155.94187447546113,
+      // 131.5871882868083,
+      // 146.05812552453887,
+      // 146.4128117131917,
+      // 155.94187447546113
+      // ...a,...b,...c,
+      // ...c,...b,...d,
+      // ...d,...f,...c,
+      // ...c,...f,...e,
+      // ...e,...f,...g,
+      // ...g,...f,...h,
+      // ...h, ...j, ...g,
+      // ...g, ...j, ...i,
+      // ...i, ...j, ...k,
+      // ...k, ...j, ...l,
+    ];
+    // console.log(this.cometData.data.length % 3);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.cometData.data), gl.STATIC_DRAW);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.cometUV.buffer);
@@ -142,7 +230,8 @@ class Comet {
 
     let dataLen = cometTail.length / 2;
     for (let i = 0; i < dataLen; i++) {
-      this.cometUV.data.push( i / dataLen);
+      // this.cometUV.data.push( i / dataLen);
+      this.cometUV.data.push( 1);
     }
 
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.cometUV.data), gl.STATIC_DRAW);
@@ -218,6 +307,30 @@ class Comet {
       }
     }
 
+
+    // let v = [];
+    // for (let i = 0; i < realPoints.length - 1; i = i+16) {
+    //   let ax = realPoints[0 + i], ay = realPoints[1+i];
+    //   let bx = realPoints[2+i], by = realPoints[3+i];
+    //   let cx = realPoints[4+i], cy = realPoints[5+i];
+    //   let dx = realPoints[6+i], dy = realPoints[7+i];
+    //   let ex = realPoints[8+i], ey = realPoints[9+i];
+    //   let fx = realPoints[10+i], fy = realPoints[11+i];
+    //   let gx = realPoints[12+i], gy = realPoints[13+i];
+    //   let hx = realPoints[14+i], hy = realPoints[15+i];
+    //   let ix = realPoints[16+i], iy = realPoints[17+i];
+    //   let jx = realPoints[18+i], jy = realPoints[19+i];
+
+    //   v.push(ax,ay, bx,by,cx,cy);
+    //   v.push(cx,cy, bx,by,dx,dy);
+    //   v.push(dx,dy, fx,fy,cx,cy);
+    //   v.push(cx,cy, fx,fy,ex,ey);
+    //   v.push(ex,ey, fx,fy,gx,gy);
+    //   v.push(gx,gy, fx,fy,hx,hy);
+    //   v.push(hx,hy, jx,jy,gx,gy);
+    //   v.push(gx,gy, jx,jy,ix,iy);
+    // }
+
     return realPoints;
   }
 
@@ -227,7 +340,7 @@ class Comet {
 
     // 右下↘
     if (a[0] < b[0] && a[1] < b[1]) {
-
+      console.log('右下');
       const x = width * Math.sin(alpha);
       const y = width * Math.cos(alpha);
       return[a[0] + x, a[1] - y, a[0] - x, a[1] + y];
@@ -235,30 +348,53 @@ class Comet {
 
     // 左下 ↙
     if (a[0] > b[0] && a[1] < b[1]) {
+      console.log('左下');
       const x = width * Math.sin(alpha);
       const y = width * Math.cos(alpha);
-      return [a[0] - x, a[1] - y, a[0] + x, a[1] + y,];
+      return [a[0] + x, a[1] + y, a[0] - x, a[1] - y,];
     }
 
     // 左上 ↖
     if (a[0] > b[0] && a[1] > b[1]) {
+      console.log('左上');
       const x = width * Math.sin(alpha);
       const y = width * Math.cos(alpha);
-      return [a[0] + x, a[1] - y, a[0] - x, a[1] + y];
+      return [a[0] - x, a[1] + y, a[0] + x, a[1] - y];
     }
 
     // 右上 ↗
     if (a[0] < b[0] && a[1] > b[1]) {
+      console.log('右上');
       const x = width * Math.sin(alpha);
       const y = width * Math.cos(alpha);
       return [a[0] - x, a[1] - y, a[0] + x, a[1] + y];
     }
 
-    if (a[0] == b[0]) {
-      return [a[0] - width, a[1], a[0] + width, a[1], ];
+    // x1 == x2, y2 > y1 向下
+    if (a[0] == b[0] && b[1] > a[1]) {
+      // 返回 右 左
+      console.log('向下');
+      return [a[0] + width, a[1], a[0] - width, a[1]];
     }
-    if (a[1] == b[1]) {
+    // x1 == x2, y2 < y1 向上
+    if (a[0] == b[0] && b[1] < a[1]) {
+      // 返回 左 右
+      console.log('向上');
+      return [a[0] - width, a[1], a[0] + width, a[1],];
+    }
+
+    // y1 == y2, x2 > x1 向右
+    if (a[1] == b[1] && b[0] > b[1]) {
+      // 返回 上下
+      console.log('向右');
       return [ a[0], a[1] - width, a[0], a[1] + width];
+    }
+
+    // y1 == y2, x2 < x1 向左
+    if (a[1] == b[1] && b[0] < b[1]) {
+      // 返回 上下
+      console.log("向左");
+      return [a[0], a[1] + width, a[0], a[1] - width];
     }
     // const wXSin = width * Math.sin(alpha);
     // const wXCos = width * Math.cos(alpha);
