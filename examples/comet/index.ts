@@ -340,7 +340,6 @@ class Comet {
 
     // 右下↘
     if (a[0] < b[0] && a[1] < b[1]) {
-      console.log('右下');
       const x = width * Math.sin(alpha);
       const y = width * Math.cos(alpha);
       return[a[0] + x, a[1] - y, a[0] - x, a[1] + y];
@@ -348,7 +347,6 @@ class Comet {
 
     // 左下 ↙
     if (a[0] > b[0] && a[1] < b[1]) {
-      console.log('左下');
       const x = width * Math.sin(alpha);
       const y = width * Math.cos(alpha);
       return [a[0] + x, a[1] + y, a[0] - x, a[1] - y,];
@@ -356,7 +354,6 @@ class Comet {
 
     // 左上 ↖
     if (a[0] > b[0] && a[1] > b[1]) {
-      console.log('左上');
       const x = width * Math.sin(alpha);
       const y = width * Math.cos(alpha);
       return [a[0] - x, a[1] + y, a[0] + x, a[1] - y];
@@ -364,7 +361,6 @@ class Comet {
 
     // 右上 ↗
     if (a[0] < b[0] && a[1] > b[1]) {
-      console.log('右上');
       const x = width * Math.sin(alpha);
       const y = width * Math.cos(alpha);
       return [a[0] - x, a[1] - y, a[0] + x, a[1] + y];
@@ -379,21 +375,18 @@ class Comet {
     // x1 == x2, y2 < y1 向上
     if (a[0] == b[0] && b[1] < a[1]) {
       // 返回 左 右
-      console.log('向上');
       return [a[0] - width, a[1], a[0] + width, a[1],];
     }
 
     // y1 == y2, x2 > x1 向右
-    if (a[1] == b[1] && b[0] > b[1]) {
+    if (a[1] == b[1] && b[0] > a[0]) {
       // 返回 上下
-      console.log('向右');
-      return [ a[0], a[1] - width, a[0], a[1] + width];
+      return [a[0], a[1] - width, a[0], a[1] + width];
     }
 
     // y1 == y2, x2 < x1 向左
-    if (a[1] == b[1] && b[0] < b[1]) {
+    if (a[1] == b[1] && b[0] < a[0]) {
       // 返回 上下
-      console.log("向左");
       return [a[0], a[1] + width, a[0], a[1] - width];
     }
     // const wXSin = width * Math.sin(alpha);
