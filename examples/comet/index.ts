@@ -24,6 +24,7 @@ class Comet {
   shapes: Mesh[] = [];
   uniforms: any;
 
+  isUniforms = false;
   constructor(canvas: HTMLCanvasElement) {
     const gl = canvas.getContext('webgl');
     var program = createProgram(gl, vertex, fragment);
@@ -73,6 +74,11 @@ class Comet {
   }
 
   setUniform() {
+    if (this.isUniforms) {
+      return;
+    }
+    this.isUniforms = true;
+    console.log('set uniform');
     let { gl, uniforms } = this;
     gl.uniform2f(uniforms['u_resolution'].location, gl.canvas.width, gl.canvas.height);
   }
