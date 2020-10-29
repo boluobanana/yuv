@@ -7,7 +7,7 @@ export class Tail extends Mesh {
   readPoints: [number, number][] = [];
   headSize = 10;
   tailSize = 4;
-  weakSpeed = 0.02;
+  weakSpeed = 0.00002;
 
   constructor(gl: WebGLRenderingContext, program: WebGLProgram) {
     super(gl, program);
@@ -19,6 +19,7 @@ export class Tail extends Mesh {
     let len = this.readPoints.length;
 
     if (len > 0) {
+
       const last = this.readPoints[len - 1];
       if (Math.abs(last[0] * last[0] + last[1] * last[1] - now) < 2048) {
         return;
@@ -38,11 +39,12 @@ export class Tail extends Mesh {
     let headSize = this.headSize;
     let tailSize = this.tailSize;
 
-    const cometTail = this.genTrack([...this.readPoints], headSize, tailSize);
+    const {vertices: cometTail, indices } = this.genTrack([...this.readPoints], headSize, tailSize);
 
     this.setPositionData(cometTail);
+    this.setIndices(indices);
 
-    let dataLen = cometTail.length / 2;
+    let dataLen = indices.length;
 
     let opacityData = [];
     let zIndexData = [];
@@ -70,7 +72,10 @@ export class Tail extends Mesh {
     let realGen = this.realGen;
 
     if (len < minHight) {
-      return [];
+      return {
+        vertices: [],
+        indices: [],
+      };
     }
     if (len > 2) {
       // 衍生一个点
@@ -98,19 +103,35 @@ export class Tail extends Mesh {
       realPoints.push(newPoints[3]);
     }
 
-    for (let i = 0; i < realPoints.length - 1; i = i + 6) {
-      let nx1 = realPoints[i + 2];
-      let ny1 = realPoints[i + 3];
+    // for (let i = 0; i < realPoints.length - 1; i = i + 6) {
+    //   let nx1 = realPoints[i + 2];
+    //   let ny1 = realPoints[i + 3];
 
-      let nx2 = realPoints[i + 4];
-      let ny2 = realPoints[i + 5];
+    //   let nx2 = realPoints[i + 4];
+    //   let ny2 = realPoints[i + 5];
 
-      if (nx1 !== undefined && nx2 !== undefined && ny1 !== undefined && ny2 !== undefined) {
-        realPoints.splice(i + 2, 0, nx1, ny1, nx2, ny2);
+    //   if (nx1 !== undefined && nx2 !== undefined && ny1 !== undefined && ny2 !== undefined) {
+    //     realPoints.splice(i + 2, 0, nx1, ny1, nx2, ny2);
+    //   }
+    // }
+    let indices = [];
+
+    for (let i = 0; i < (realPoints.length / 2) - 1; i = i + 2) {
+      const a = i;
+      const b = i + 1;
+      const c = i + 2;
+      const d = i + 3;
+
+      if ( d < (realPoints.length / 2) ) {
+        indices.push(a, b, c);
+        indices.push(b, c, d);
       }
     }
 
-    return realPoints;
+    return {
+      vertices: realPoints,
+      indices,
+    };
   }
 
   realGen(a: [number, number], b: [number, number], width: number) {

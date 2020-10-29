@@ -4,6 +4,7 @@ export default abstract class Mesh {
   position: GLData;
   zIndex: GLData;
   opacity: GLData;
+  indicesData: GLData;
   attrs: GLData[];
 
   gl: WebGLRenderingContext;
@@ -33,7 +34,12 @@ export default abstract class Mesh {
       size: 1,
     };
 
-    this.attrs = [this.position, this.zIndex, this.opacity];
+    this.indicesData = {
+      buffer: gl.createBuffer(),
+      data: [],
+    };
+
+    this.attrs = [this.indicesData, this.position, this.zIndex, this.opacity,];
 
   }
 
@@ -46,16 +52,23 @@ export default abstract class Mesh {
     if (this.position.data.length === 0) {
       return;
     }
+
+    this.bindBuffer();
     this.bindBufferData();
 
     gl.useProgram(this.program);
-    this.bindBuffer();
+
+
     fn();
 
     var primitiveType = gl.TRIANGLES;
     var offset = 0;
-    var count = this.position.data.length / 2;
-    gl.drawArrays(primitiveType, offset, count);
+    var count = this.indicesData.data.length;
+    var indexType = gl.UNSIGNED_SHORT;
+
+    gl.drawElements(primitiveType, count, indexType, offset);
+
+    // gl.drawArrays(primitiveType, offset, count);
 
   }
 
@@ -63,10 +76,20 @@ export default abstract class Mesh {
     let gl = this.gl;
 
     this.attrs.forEach(attr => {
-      gl.bindBuffer(gl.ARRAY_BUFFER, attr.buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(attr.data), gl.STATIC_DRAW);
-    })
 
+      if (attr.location !== undefined) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, attr.buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(attr.data), gl.STATIC_DRAW);
+      } else {
+        // console.log('att', attr.data);
+        // for indices
+        gl.bufferData(
+          gl.ELEMENT_ARRAY_BUFFER,
+          new Uint16Array(attr.data),
+          gl.STATIC_DRAW
+      );
+      }
+    })
   }
 
   bindBuffer() {
@@ -77,9 +100,15 @@ export default abstract class Mesh {
     for (let k in attrs) {
       let attr = attrs[k];
 
-      gl.enableVertexAttribArray(attr.location);
-      gl.bindBuffer(gl.ARRAY_BUFFER, attr.buffer);
-      gl.vertexAttribPointer(attr.location, attr.size || 2, attr.type || gl.FLOAT, attr.normalize || false, attr.stride || 0, attr.offset || 0)
+      if (attr.location !== undefined) {
+        gl.enableVertexAttribArray(attr.location);
+        gl.bindBuffer(gl.ARRAY_BUFFER, attr.buffer);
+        gl.vertexAttribPointer(attr.location, attr.size || 2, attr.type || gl.FLOAT, attr.normalize || false, attr.stride || 0, attr.offset || 0)
+      } else {
+        // for indices
+        // make this buffer the current 'ELEMENT_ARRAY_BUFFER'
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, attr.buffer);
+       }
     }
   }
 
@@ -95,4 +124,7 @@ export default abstract class Mesh {
     this.zIndex.data = d;
   }
 
+  setIndices(d: number[]) {
+    this.indicesData.data = d;
+  }
 }

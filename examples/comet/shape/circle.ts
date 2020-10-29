@@ -4,7 +4,7 @@ import Mesh from './mesh';
 
 export class Circle extends Mesh {
 
-  origin: [number, number] = [0,0];
+  origin: [number, number] = [40,40];
   size: number = 4;
 
   constructor(gl: WebGLRenderingContext, program: WebGLProgram) {
@@ -22,9 +22,9 @@ export class Circle extends Mesh {
   genData() {
     const {origin, size} = this;
 
-    let circly = this.genCircly(origin[0], origin[1], size, 16);
-
+    let {vertices: circly, indices } = this.genCircly(origin[0], origin[1], size, 16);
     this.setPositionData(circly);
+    this.setIndices(indices);
 
     const opacityData = [];
     const zIndexData = [];
@@ -39,7 +39,7 @@ export class Circle extends Mesh {
   }
 
   genCircly(x: number, y: number, radius: number, segments: number) {
-    const vertices = [];
+    const vertices = [x,y];
     for (let s = 0; s <= segments; s++) {
 
       var segment = s / segments * Math.PI * 2;
@@ -50,31 +50,34 @@ export class Circle extends Mesh {
       vertices.push(x - pos_x, y - pos_y);
     }
 
-    for (let i = 0; i < vertices.length - 1; i = i + 6) {
-      let nx = vertices[i + 2] || vertices[0];
-      let ny = vertices[i + 3] || vertices[1];
+    let indices = [];
 
-      vertices.splice(i + 2, 0, x, y, nx, ny);
-
+    for (let i = 0; i < (vertices.length / 2) - 1; i = i + 1) {
+      indices.push(0);
+      indices.push(i);
+      indices.push(i+1);
     }
 
-    return vertices;
+    return {
+      vertices,
+      indices
+    };
   }
 
-  genCirclyTrack(points: [number, number][], maxWidth: number, minHight: number) {
-    const len = points.length;
-    let realPoints = [];
-    if (points.length <= maxWidth) {
-      return [];
-    }
+  // genCirclyTrack(points: [number, number][], maxWidth: number, minHight: number) {
+  //   const len = points.length;
+  //   let realPoints = [];
+  //   if (points.length <= maxWidth) {
+  //     return [];
+  //   }
 
-    for (let i = 0; i < len; i++) {
-      let p = points[i];
-      const radius = (maxWidth - minHight) * i / len + minHight;
-      let vs = this.genCircly(p[0], p[1], radius, 8);
-      realPoints = [...realPoints, ...vs];
-    }
+  //   for (let i = 0; i < len; i++) {
+  //     let p = points[i];
+  //     const radius = (maxWidth - minHight) * i / len + minHight;
+  //     let vs = this.genCircly(p[0], p[1], radius, 8);
+  //     realPoints = [...realPoints, ...vs];
+  //   }
 
-    return realPoints;
-  }
+  //   return realPoints;
+  // }
 }

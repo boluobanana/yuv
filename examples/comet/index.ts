@@ -4,7 +4,7 @@ import {Tail} from './shape/tail';
 import { Circle } from './shape/circle';
 import Mesh from './shape/mesh';
 export interface GLData {
-  location: number;
+  location?: number;
   buffer: WebGLBuffer;
   data: number[];
   size?: number;
